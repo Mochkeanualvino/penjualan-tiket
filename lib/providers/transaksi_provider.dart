@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 import '../models/transaksi_model.dart';
 import '../models/pembayaran_model.dart';
 import '../models/jadwal_model.dart';
+import '../services/local_storage_service.dart';
 
 class TransaksiProvider extends ChangeNotifier {
   final List<TransaksiModel> _transaksiList = [];
@@ -12,7 +13,23 @@ class TransaksiProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   TransaksiProvider() {
-    _seedInitialTransaksi();
+    _loadFromStorage();
+  }
+
+  void _loadFromStorage() {
+    final saved = LocalStorageService.loadList(LocalStorageService.keyTransaksi);
+    if (saved.isNotEmpty) {
+      _transaksiList.addAll(saved.map((m) => TransaksiModel.fromMap(m, m['id'] ?? '')));
+    } else {
+      _seedInitialTransaksi();
+    }
+  }
+
+  Future<void> _autoSave() async {
+    await LocalStorageService.saveList(
+      LocalStorageService.keyTransaksi,
+      _transaksiList.map((t) => {'id': t.id, ...t.toMap()}).toList(),
+    );
   }
 
   void _seedInitialTransaksi() {
@@ -77,6 +94,7 @@ class TransaksiProvider extends ChangeNotifier {
     _transaksiList.insert(0, newTrx);
     _isLoading = false;
     notifyListeners();
+    _autoSave();
     return newTrx;
   }
 
@@ -119,11 +137,13 @@ class TransaksiProvider extends ChangeNotifier {
 
       _isLoading = false;
       notifyListeners();
+      _autoSave();
       return true;
     }
 
     _isLoading = false;
     notifyListeners();
+    _autoSave();
     return false;
   }
 
@@ -164,5 +184,6 @@ class TransaksiProvider extends ChangeNotifier {
 
     _isLoading = false;
     notifyListeners();
+    _autoSave();
   }
 }

@@ -65,7 +65,7 @@ class RiwayatTransaksiScreen extends StatelessWidget {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                     decoration: BoxDecoration(
-                                      color: statusColor.withOpacity(0.2),
+                                      color: statusColor.withAlpha(51),
                                       borderRadius: BorderRadius.circular(6),
                                       border: Border.all(color: statusColor, width: 0.8),
                                     ),

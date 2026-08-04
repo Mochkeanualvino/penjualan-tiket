@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/kursi_model.dart';
+import '../services/local_storage_service.dart';
 
 class KursiProvider extends ChangeNotifier {
   final List<KursiModel> _kursiList = [];
@@ -10,7 +11,16 @@ class KursiProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   KursiProvider() {
-    _seedInitialKursi();
+    _loadFromStorage();
+  }
+
+  void _loadFromStorage() {
+    final saved = LocalStorageService.loadList(LocalStorageService.keyKursi);
+    if (saved.isNotEmpty) {
+      _kursiList.addAll(saved.map((m) => KursiModel.fromMap(m, m['id'] ?? '')));
+    } else {
+      _seedInitialKursi();
+    }
   }
 
   void _seedInitialKursi() {
@@ -48,6 +58,13 @@ class KursiProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> _autoSave() async {
+    await LocalStorageService.saveList(
+      LocalStorageService.keyKursi,
+      _kursiList.map((k) => {'id': k.id, ...k.toMap()}).toList(),
+    );
+  }
+
   List<KursiModel> getKursiByStudio(String studioId) {
     return _kursiList.where((k) => k.studioId == studioId).toList();
   }
@@ -73,6 +90,7 @@ class KursiProvider extends ChangeNotifier {
 
     _kursiList.add(newKursi);
     _isLoading = false;
+    _autoSave();
     notifyListeners();
   }
 
@@ -100,6 +118,7 @@ class KursiProvider extends ChangeNotifier {
     }
 
     _isLoading = false;
+    _autoSave();
     notifyListeners();
   }
 
@@ -111,6 +130,7 @@ class KursiProvider extends ChangeNotifier {
     _kursiList.removeWhere((k) => k.id == id);
 
     _isLoading = false;
+    _autoSave();
     notifyListeners();
   }
 
@@ -128,6 +148,7 @@ class KursiProvider extends ChangeNotifier {
         );
       }
     }
+    _autoSave();
     notifyListeners();
   }
 }

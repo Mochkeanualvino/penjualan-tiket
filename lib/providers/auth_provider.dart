@@ -1,12 +1,47 @@
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../services/database_service.dart';
+import '../services/local_storage_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final DatabaseService _db = DatabaseService();
   UserModel? _currentUser;
   bool _isLoading = false;
   String _selectedCity = 'JAKARTA';
+
+  AuthProvider() {
+    _loadSession();
+  }
+
+  /// Muat sesi pengguna yang tersimpan dari penyimpanan lokal
+  void _loadSession() {
+    final savedUser = LocalStorageService.loadMap(LocalStorageService.keyCurrentUser);
+    if (savedUser != null) {
+      _currentUser = UserModel.fromMap(savedUser, savedUser['id'] ?? '');
+      _selectedCity = _currentUser!.selectedCity;
+      _db.saveUser(_currentUser!);
+    }
+    final savedCity = LocalStorageService.loadString(LocalStorageService.keySelectedCity);
+    if (savedCity != null) {
+      _selectedCity = savedCity;
+    }
+  }
+
+  /// Simpan sesi pengguna secara otomatis ke penyimpanan lokal
+  Future<void> _saveSession() async {
+    if (_currentUser != null) {
+      await LocalStorageService.saveMap(
+        LocalStorageService.keyCurrentUser,
+        {'id': _currentUser!.id, ..._currentUser!.toMap()},
+      );
+    }
+    await LocalStorageService.saveString(LocalStorageService.keySelectedCity, _selectedCity);
+  }
+
+  /// Hapus sesi pengguna dari penyimpanan lokal
+  Future<void> _clearSession() async {
+    await LocalStorageService.remove(LocalStorageService.keyCurrentUser);
+  }
 
   UserModel? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
@@ -150,6 +185,7 @@ class AuthProvider extends ChangeNotifier {
       _currentUser = _currentUser!.copyWith(selectedCity: city);
     }
     notifyListeners();
+    _saveSession();
   }
 
   List<Map<String, String>> getCinemasForCurrentCity() {
@@ -183,6 +219,7 @@ class AuthProvider extends ChangeNotifier {
     _selectedCity = user.selectedCity;
     _isLoading = false;
     notifyListeners();
+    _saveSession();
     return true;
   }
 
@@ -215,11 +252,13 @@ class AuthProvider extends ChangeNotifier {
     _currentUser = user;
     _isLoading = false;
     notifyListeners();
+    _saveSession();
     return true;
   }
 
   void logout() {
     _currentUser = null;
     notifyListeners();
+    _clearSession();
   }
 }

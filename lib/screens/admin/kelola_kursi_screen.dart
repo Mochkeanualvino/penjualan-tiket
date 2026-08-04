@@ -214,7 +214,7 @@ class _KelolaKursiScreenState extends State<KelolaKursiScreen> {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: (isAvailable ? AppTheme.accentGreen : AppTheme.accentRed).withOpacity(0.2),
+                                    color: (isAvailable ? AppTheme.accentGreen : AppTheme.accentRed).withAlpha(51),
                                     borderRadius: BorderRadius.circular(6),
                                     border: Border.all(
                                       color: isAvailable ? AppTheme.accentGreen : AppTheme.accentRed,

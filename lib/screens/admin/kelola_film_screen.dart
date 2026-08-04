@@ -203,7 +203,7 @@ class KelolaFilmScreen extends StatelessWidget {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: AppTheme.primaryGold.withOpacity(0.2),
+                                    color: AppTheme.primaryGold.withAlpha(51),
                                     borderRadius: BorderRadius.circular(6),
                                     border: Border.all(color: AppTheme.primaryGold, width: 0.5),
                                   ),

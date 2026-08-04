@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/jadwal_model.dart';
+import '../services/local_storage_service.dart';
 
 class JadwalProvider extends ChangeNotifier {
   final List<JadwalModel> _jadwalList = [];
@@ -10,7 +11,23 @@ class JadwalProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   JadwalProvider() {
-    _seedInitialJadwal();
+    _loadFromStorage();
+  }
+
+  void _loadFromStorage() {
+    final saved = LocalStorageService.loadList(LocalStorageService.keyJadwal);
+    if (saved.isNotEmpty) {
+      _jadwalList.addAll(saved.map((m) => JadwalModel.fromMap(m, m['id'] ?? '')));
+    } else {
+      _seedInitialJadwal();
+    }
+  }
+
+  Future<void> _autoSave() async {
+    await LocalStorageService.saveList(
+      LocalStorageService.keyJadwal,
+      _jadwalList.map((j) => {'id': j.id, ...j.toMap()}).toList(),
+    );
   }
 
   void _seedInitialJadwal() {
@@ -105,6 +122,7 @@ class JadwalProvider extends ChangeNotifier {
     _jadwalList.add(newJadwal);
     _isLoading = false;
     notifyListeners();
+    _autoSave();
   }
 
   Future<void> updateJadwal({
@@ -140,6 +158,7 @@ class JadwalProvider extends ChangeNotifier {
 
     _isLoading = false;
     notifyListeners();
+    _autoSave();
   }
 
   Future<void> deleteJadwal(String id) async {
@@ -151,5 +170,6 @@ class JadwalProvider extends ChangeNotifier {
 
     _isLoading = false;
     notifyListeners();
+    _autoSave();
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'utils/theme.dart';
 import 'providers/auth_provider.dart';
 import 'providers/film_provider.dart';
@@ -7,12 +8,15 @@ import 'providers/studio_provider.dart';
 import 'providers/kursi_provider.dart';
 import 'providers/jadwal_provider.dart';
 import 'providers/transaksi_provider.dart';
+import 'services/local_storage_service.dart';
 import 'screens/login_screen.dart';
 import 'screens/admin/dashboard_admin_screen.dart';
 import 'screens/pelanggan/dashboard_pelanggan_screen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('id_ID', null);
+  await LocalStorageService.init();
   runApp(const BioskopApp());
 }
 

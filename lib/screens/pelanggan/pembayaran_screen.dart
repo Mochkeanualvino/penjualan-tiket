@@ -99,6 +99,7 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
                         );
 
                         if (success) {
+                          if (!mounted) return;
                           // Reserve selected seats in state
                           Provider.of<KursiProvider>(context, listen: false)
                               .reserveSeats(widget.kursiIdsToReserve);
