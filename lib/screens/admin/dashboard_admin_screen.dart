@@ -10,6 +10,7 @@ import 'kelola_kursi_screen.dart';
 import 'kelola_jadwal_screen.dart';
 import 'kelola_transaksi_screen.dart';
 import 'kelola_pembayaran_screen.dart';
+import 'kelola_makanan_screen.dart';
 
 class DashboardAdminScreen extends StatefulWidget {
   const DashboardAdminScreen({super.key});
@@ -29,6 +30,7 @@ class _DashboardAdminScreenState extends State<DashboardAdminScreen> {
     'Kelola Jadwal',
     'Kelola Transaksi',
     'Kelola Pembayaran',
+    'Kelola Makanan',
   ];
 
   @override
@@ -36,13 +38,20 @@ class _DashboardAdminScreenState extends State<DashboardAdminScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
 
     final List<Widget> pages = [
-      const AdminDashboardHome(),
+      AdminDashboardHome(
+        onNavigateTab: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+      ),
       const KelolaFilmScreen(),
       const KelolaStudioScreen(),
       const KelolaKursiScreen(),
       const KelolaJadwalScreen(),
       const KelolaTransaksiScreen(),
       const KelolaPembayaranScreen(),
+      const KelolaMakananScreen(),
     ];
 
     return Scaffold(
@@ -68,7 +77,7 @@ class _DashboardAdminScreenState extends State<DashboardAdminScreen> {
           if (isDesktop) {
             return Row(
               children: [
-                // Navigation Rail / Sidebar for Desktop
+                // Navigation Rail for Desktop
                 NavigationRail(
                   selectedIndex: _selectedIndex,
                   onDestinationSelected: (int index) {
@@ -89,6 +98,7 @@ class _DashboardAdminScreenState extends State<DashboardAdminScreen> {
                     NavigationRailDestination(icon: Icon(Icons.schedule), label: Text('Jadwal')),
                     NavigationRailDestination(icon: Icon(Icons.receipt_long), label: Text('Transaksi')),
                     NavigationRailDestination(icon: Icon(Icons.payment), label: Text('Pembayaran')),
+                    NavigationRailDestination(icon: Icon(Icons.fastfood), label: Text('Makanan')),
                   ],
                 ),
                 const VerticalDivider(thickness: 1, width: 1, color: Colors.white10),
@@ -96,7 +106,6 @@ class _DashboardAdminScreenState extends State<DashboardAdminScreen> {
               ],
             );
           } else {
-            // Drawer & Tab for Mobile / Smaller screens
             return IndexedStack(
               index: _selectedIndex,
               children: pages,
@@ -129,6 +138,7 @@ class _DashboardAdminScreenState extends State<DashboardAdminScreen> {
             _buildDrawerItem(4, 'Kelola Jadwal', Icons.schedule),
             _buildDrawerItem(5, 'Kelola Transaksi', Icons.receipt_long),
             _buildDrawerItem(6, 'Kelola Pembayaran', Icons.payment),
+            _buildDrawerItem(7, 'Kelola Makanan', Icons.fastfood),
             const Divider(color: Colors.white10),
             ListTile(
               leading: const Icon(Icons.logout, color: AppTheme.accentRed),

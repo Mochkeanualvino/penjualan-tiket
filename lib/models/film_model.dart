@@ -5,6 +5,7 @@ class FilmModel {
   final int durasi; // in minutes
   final String ratingUsia; // e.g. "SU", "13+", "17+", "21+"
   final String posterUrl;
+  final bool isSegeraTayang;
 
   FilmModel({
     required this.id,
@@ -13,6 +14,7 @@ class FilmModel {
     required this.durasi,
     required this.ratingUsia,
     required this.posterUrl,
+    this.isSegeraTayang = false,
   });
 
   factory FilmModel.fromMap(Map<String, dynamic> map, String docId) {
@@ -23,6 +25,7 @@ class FilmModel {
       durasi: (map['durasi'] ?? 0) is int ? (map['durasi'] ?? 0) : int.parse(map['durasi'].toString()),
       ratingUsia: map['ratingUsia'] ?? 'SU',
       posterUrl: map['posterUrl'] ?? '',
+      isSegeraTayang: map['isSegeraTayang'] == true || map['is_segera_tayang'] == true || map['is_segera_tayang'] == 1,
     );
   }
 
@@ -33,6 +36,7 @@ class FilmModel {
       'durasi': durasi,
       'ratingUsia': ratingUsia,
       'posterUrl': posterUrl,
+      'isSegeraTayang': isSegeraTayang,
     };
   }
 }

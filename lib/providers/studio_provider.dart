@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/studio_model.dart';
 import '../services/local_storage_service.dart';
+import '../services/api_service.dart';
 
 class StudioProvider extends ChangeNotifier {
   final List<StudioModel> _studios = [];
@@ -12,6 +13,7 @@ class StudioProvider extends ChangeNotifier {
 
   StudioProvider() {
     _loadFromStorage();
+    _syncFromApi(); // Sinkronisasi dari API Laravel
   }
 
   void _loadFromStorage() {
@@ -20,6 +22,30 @@ class StudioProvider extends ChangeNotifier {
       _studios.addAll(saved.map((m) => StudioModel.fromMap(m, m['id'] ?? '')));
     } else {
       _seedInitialStudios();
+    }
+  }
+
+  /// Sinkronisasi data dari Laravel REST API (jika backend aktif)
+  Future<void> _syncFromApi() async {
+    try {
+      final result = await ApiService.get('/studios');
+      if (result != null && result['status'] == 'success' && result['data'] != null) {
+        final List apiStudios = result['data'];
+        if (apiStudios.isNotEmpty) {
+          _studios.clear();
+          for (var s in apiStudios) {
+            _studios.add(StudioModel(
+              id: s['id'] ?? '',
+              namaStudio: s['nama'] ?? '',
+              kapasitas: s['kapasitas'] ?? 0,
+            ));
+          }
+          notifyListeners();
+          _autoSave();
+        }
+      }
+    } catch (e) {
+      debugPrint('StudioProvider: API sync gagal (mode offline): $e');
     }
   }
 
@@ -65,6 +91,13 @@ class StudioProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
     _autoSave();
+
+    // Sync ke API Laravel
+    ApiService.post('/studios', {
+      'nama': namaStudio,
+      'kapasitas': kapasitas,
+      'tipe_studio': 'Regular',
+    });
   }
 
   Future<void> updateStudio({
@@ -83,6 +116,12 @@ class StudioProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
     _autoSave();
+
+    // Sync ke API Laravel
+    ApiService.put('/studios/$id', {
+      'nama': namaStudio,
+      'kapasitas': kapasitas,
+    });
   }
 
   Future<void> deleteStudio(String id) async {
@@ -93,5 +132,8 @@ class StudioProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
     _autoSave();
+
+    // Sync ke API Laravel
+    ApiService.delete('/studios/$id');
   }
 }

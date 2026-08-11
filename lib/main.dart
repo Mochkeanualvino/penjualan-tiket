@@ -8,6 +8,7 @@ import 'providers/studio_provider.dart';
 import 'providers/kursi_provider.dart';
 import 'providers/jadwal_provider.dart';
 import 'providers/transaksi_provider.dart';
+import 'providers/food_provider.dart';
 import 'services/local_storage_service.dart';
 import 'screens/login_screen.dart';
 import 'screens/admin/dashboard_admin_screen.dart';
@@ -33,6 +34,7 @@ class BioskopApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => KursiProvider()),
         ChangeNotifierProvider(create: (_) => JadwalProvider()),
         ChangeNotifierProvider(create: (_) => TransaksiProvider()),
+        ChangeNotifierProvider(create: (_) => FoodProvider()),
       ],
       child: MaterialApp(
         title: 'Penjualan Tiket Bioskop',

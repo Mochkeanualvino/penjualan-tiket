@@ -4,11 +4,14 @@ import '../../providers/film_provider.dart';
 import '../../providers/studio_provider.dart';
 import '../../providers/jadwal_provider.dart';
 import '../../providers/transaksi_provider.dart';
+import '../../providers/food_provider.dart';
 import '../../utils/theme.dart';
 import '../../utils/formatters.dart';
 
 class AdminDashboardHome extends StatelessWidget {
-  const AdminDashboardHome({super.key});
+  final Function(int index)? onNavigateTab;
+
+  const AdminDashboardHome({super.key, this.onNavigateTab});
 
   @override
   Widget build(BuildContext context) {
@@ -16,6 +19,7 @@ class AdminDashboardHome extends StatelessWidget {
     final studioCount = Provider.of<StudioProvider>(context).studios.length;
     final jadwalCount = Provider.of<JadwalProvider>(context).jadwalList.length;
     final transaksiList = Provider.of<TransaksiProvider>(context).transaksiList;
+    final foodCount = Provider.of<FoodProvider>(context).foods.length;
     final transaksiCount = transaksiList.length;
 
     double totalOmset = 0;
@@ -32,24 +36,60 @@ class AdminDashboardHome extends StatelessWidget {
             'Ringkasan Sistem Bioskop',
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.primaryGold),
           ),
+          const SizedBox(height: 6),
+          const Text(
+            'Klik pada kotak statistik di bawah untuk langsung menuju halaman pengelola terkait.',
+            style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
+          ),
           const SizedBox(height: 20),
 
           // Stat Cards Grid
           LayoutBuilder(
             builder: (context, constraints) {
-              final crossAxisCount = constraints.maxWidth > 800 ? 4 : (constraints.maxWidth > 500 ? 2 : 1);
+              final crossAxisCount = constraints.maxWidth > 900 ? 5 : (constraints.maxWidth > 600 ? 3 : 1);
               return GridView.count(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 crossAxisCount: crossAxisCount,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
-                childAspectRatio: 1.5,
+                childAspectRatio: 1.35,
                 children: [
-                  _buildStatCard('Total Film', filmCount.toString(), Icons.movie, AppTheme.primaryGold),
-                  _buildStatCard('Total Studio', studioCount.toString(), Icons.meeting_room, AppTheme.accentBlue),
-                  _buildStatCard('Jadwal Aktif', jadwalCount.toString(), Icons.schedule, AppTheme.accentGreen),
-                  _buildStatCard('Total Transaksi', transaksiCount.toString(), Icons.confirmation_number, Colors.purpleAccent),
+                  _buildStatCard(
+                    title: 'Total Film',
+                    value: filmCount.toString(),
+                    icon: Icons.movie,
+                    color: AppTheme.primaryGold,
+                    onTap: () => onNavigateTab?.call(1),
+                  ),
+                  _buildStatCard(
+                    title: 'Total Studio',
+                    value: studioCount.toString(),
+                    icon: Icons.meeting_room,
+                    color: AppTheme.accentBlue,
+                    onTap: () => onNavigateTab?.call(2),
+                  ),
+                  _buildStatCard(
+                    title: 'Jadwal Aktif',
+                    value: jadwalCount.toString(),
+                    icon: Icons.schedule,
+                    color: AppTheme.accentGreen,
+                    onTap: () => onNavigateTab?.call(4),
+                  ),
+                  _buildStatCard(
+                    title: 'Total Transaksi',
+                    value: transaksiCount.toString(),
+                    icon: Icons.confirmation_number,
+                    color: Colors.purpleAccent,
+                    onTap: () => onNavigateTab?.call(5),
+                  ),
+                  _buildStatCard(
+                    title: 'Menu Makanan',
+                    value: foodCount.toString(),
+                    icon: Icons.fastfood,
+                    color: Colors.orangeAccent,
+                    onTap: () => onNavigateTab?.call(7),
+                  ),
                 ],
               );
             },
@@ -62,19 +102,19 @@ class AdminDashboardHome extends StatelessWidget {
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [AppTheme.primaryGold.withOpacity(0.2), AppTheme.cardBgLight],
+                colors: [AppTheme.primaryGold.withAlpha(50), AppTheme.cardBgLight],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppTheme.primaryGold.withOpacity(0.4)),
+              border: Border.all(color: AppTheme.primaryGold.withAlpha(100)),
             ),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryGold.withOpacity(0.2),
+                    color: AppTheme.primaryGold.withAlpha(50),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.account_balance_wallet, size: 36, color: AppTheme.primaryGold),
@@ -99,27 +139,50 @@ class AdminDashboardHome extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard({
+    required String title,
+    required String value,
+    required IconData icon,
+    required Color color,
+    VoidCallback? onTap,
+  }) {
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(title, style: const TextStyle(color: AppTheme.textMuted, fontSize: 13)),
-                Icon(icon, color: color, size: 24),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              value,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: color),
-            ),
-          ],
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Icon(icon, color: color, size: 24),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    value,
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: color),
+                  ),
+                  const Icon(Icons.arrow_forward_ios, size: 14, color: AppTheme.textMuted),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

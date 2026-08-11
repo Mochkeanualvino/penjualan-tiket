@@ -4,6 +4,7 @@ import '../models/transaksi_model.dart';
 import '../models/pembayaran_model.dart';
 import '../models/jadwal_model.dart';
 import '../services/local_storage_service.dart';
+import '../services/api_service.dart';
 
 class TransaksiProvider extends ChangeNotifier {
   final List<TransaksiModel> _transaksiList = [];
@@ -14,6 +15,7 @@ class TransaksiProvider extends ChangeNotifier {
 
   TransaksiProvider() {
     _loadFromStorage();
+    _syncFromApi(); // Sinkronisasi dari API Laravel
   }
 
   void _loadFromStorage() {
@@ -22,6 +24,21 @@ class TransaksiProvider extends ChangeNotifier {
       _transaksiList.addAll(saved.map((m) => TransaksiModel.fromMap(m, m['id'] ?? '')));
     } else {
       _seedInitialTransaksi();
+    }
+  }
+
+  /// Sinkronisasi data dari Laravel REST API (jika backend aktif)
+  Future<void> _syncFromApi() async {
+    try {
+      final result = await ApiService.get('/transaksi');
+      if (result != null && result['status'] == 'success' && result['data'] != null) {
+        final List apiData = result['data'];
+        if (apiData.isNotEmpty) {
+          debugPrint('TransaksiProvider: ${apiData.length} transaksi dari API');
+        }
+      }
+    } catch (e) {
+      debugPrint('TransaksiProvider: API sync gagal (mode offline): $e');
     }
   }
 
@@ -95,6 +112,16 @@ class TransaksiProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
     _autoSave();
+
+    // Sync ke API Laravel
+    ApiService.post('/transaksi', {
+      'user_id': userId,
+      'jadwal_id': jadwal.id,
+      'kursi_list': daftarKursi,
+      'total_harga': totalHarga,
+      'metode_pembayaran': 'Pending',
+    });
+
     return newTrx;
   }
 
@@ -138,6 +165,10 @@ class TransaksiProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       _autoSave();
+
+      // Sync status ke API Laravel
+      ApiService.put('/transaksi/$transaksiId/status', {'status': 'Berhasil'});
+
       return true;
     }
 
@@ -185,5 +216,8 @@ class TransaksiProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
     _autoSave();
+
+    // Sync status ke API Laravel
+    ApiService.put('/transaksi/$transaksiId/status', {'status': newStatus});
   }
 }

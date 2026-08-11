@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../utils/theme.dart';
+import '../../utils/formatters.dart';
 
 class SewaTempatScreen extends StatefulWidget {
   const SewaTempatScreen({super.key});
@@ -23,6 +25,101 @@ class _SewaTempatScreenState extends State<SewaTempatScreen> {
     _phoneController.dispose();
     _descController.dispose();
     super.dispose();
+  }
+
+  Future<void> _submitAndOpenWhatsApp() async {
+    if (_formKey.currentState!.validate()) {
+      final nama = _nameController.text.trim();
+      String phone = _phoneController.text.trim().replaceAll(RegExp(r'[^0-9]'), '');
+      if (phone.startsWith('0')) {
+        phone = '62${phone.substring(1)}';
+      }
+
+      final tanggalStr = Formatters.formatShortDate(_selectedDate);
+      final desc = _descController.text.trim();
+
+      final message = 'Halo Admin XXI Bioskop! 👋\n\n'
+          'Saya mengajukan permohonan Sewa Tempat / Studio XXI:\n'
+          '👤 Nama: $nama\n'
+          '📱 No. WA: ${_phoneController.text.trim()}\n'
+          '🎉 Tipe Event: $_tipeAcara\n'
+          '📅 Tanggal Rencana: $tanggalStr\n'
+          '📝 Catatan: ${desc.isNotEmpty ? desc : "-"}\n\n'
+          'Mohon konfirmasi jadwal sewa studio 1x24 jam. Terima kasih!';
+
+      final encodedMessage = Uri.encodeComponent(message);
+      final waUrl = 'https://wa.me/$phone?text=$encodedMessage';
+      final fallbackUrl = 'https://api.whatsapp.com/send?phone=$phone&text=$encodedMessage';
+
+      try {
+        final uri = Uri.parse(waUrl);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } else {
+          await launchUrl(Uri.parse(fallbackUrl), mode: LaunchMode.externalApplication);
+        }
+      } catch (e) {
+        debugPrint('Error launch WhatsApp: $e');
+      }
+
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Row(
+              children: const [
+                Icon(Icons.check_circle, color: AppTheme.accentGreen, size: 28),
+                SizedBox(width: 10),
+                Text('Persetujuan Berhasil!'),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Terima kasih, $nama! Permohonan sewa tempat XXI Anda telah tercatat.',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.accentGreen.withAlpha(30),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppTheme.accentGreen),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.mark_chat_read, color: AppTheme.accentGreen),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Pesan WA berhasil dikirim ke ${_phoneController.text.trim()}.\nTim XXI Marketing akan mengonfirmasi permintaan Anda dalam 1x24 jam.',
+                          style: const TextStyle(fontSize: 12, color: AppTheme.accentGreen),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  _nameController.clear();
+                  _phoneController.clear();
+                  _descController.clear();
+                  Navigator.pop(ctx);
+                  Navigator.pop(context);
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -57,8 +154,12 @@ class _SewaTempatScreenState extends State<SewaTempatScreen> {
               TextFormField(
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(labelText: 'Nomor Telepon / WhatsApp'),
-                validator: (v) => v == null || v.isEmpty ? 'Wajib diisi' : null,
+                decoration: const InputDecoration(
+                  labelText: 'Nomor Telepon / WhatsApp',
+                  hintText: 'e.g. 08123456789',
+                  prefixIcon: Icon(Icons.phone_android, color: AppTheme.primaryGold),
+                ),
+                validator: (v) => v == null || v.isEmpty ? 'Nomor WA wajib diisi' : null,
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
@@ -77,13 +178,13 @@ class _SewaTempatScreenState extends State<SewaTempatScreen> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 tileColor: AppTheme.cardBgLight,
                 title: const Text('Tanggal Rencana Event', style: TextStyle(fontSize: 12, color: AppTheme.primaryGold)),
-                subtitle: Text('${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}', style: const TextStyle(color: Colors.white)),
+                subtitle: Text(Formatters.formatShortDate(_selectedDate), style: const TextStyle(color: Colors.white)),
                 trailing: const Icon(Icons.calendar_today, color: AppTheme.primaryGold),
                 onTap: () async {
                   final picked = await showDatePicker(
                     context: context,
                     initialDate: _selectedDate,
-                    firstDate: DateTime.now().add(const Duration(days: 3)),
+                    firstDate: DateTime.now().add(const Duration(days: 1)),
                     lastDate: DateTime.now().add(const Duration(days: 180)),
                   );
                   if (picked != null) {
@@ -101,31 +202,10 @@ class _SewaTempatScreenState extends State<SewaTempatScreen> {
               SizedBox(
                 width: double.infinity,
                 height: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      _nameController.clear();
-                      _phoneController.clear();
-                      _descController.clear();
-                      showDialog(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: const Text('Persetujuan Berhasil'),
-                          content: const Text('Permohonan sewa tempat Anda telah dikirim. Tim XXI Marketing akan menghubungi Anda dalam waktu 1x24 jam.'),
-                          actions: [
-                            ElevatedButton(
-                              onPressed: () {
-                                Navigator.pop(ctx);
-                                Navigator.pop(context);
-                              },
-                              child: const Text('OK'),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-                  },
-                  child: const Text('KIRIM PENGAJUAN'),
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.send_rounded),
+                  label: const Text('KIRIM PENGAJUAN & BUKA WA'),
+                  onPressed: _submitAndOpenWhatsApp,
                 ),
               ),
             ],

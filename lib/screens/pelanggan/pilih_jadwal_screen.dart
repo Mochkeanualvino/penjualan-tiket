@@ -51,6 +51,9 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen> with SingleTicker
     final jadwalProvider = Provider.of<JadwalProvider>(context);
     final jadwalList = jadwalProvider.getJadwalByFilm(widget.film.id);
     final cinemas = authProvider.getCinemasForCurrentCity();
+    final selectedDate = _dates[_selectedDateIndex];
+    final isFriday = selectedDate.weekday == DateTime.friday;
+    final isMonday = selectedDate.weekday == DateTime.monday;
 
     return Scaffold(
       appBar: AppBar(
@@ -94,7 +97,6 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen> with SingleTicker
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Poster
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
                     child: Image.network(
@@ -111,12 +113,10 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen> with SingleTicker
                     ),
                   ),
                   const SizedBox(width: 16),
-                  // Info
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Advance badge
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                           decoration: BoxDecoration(
@@ -143,7 +143,6 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen> with SingleTicker
                           style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
                         ),
                         const SizedBox(height: 10),
-                        // Chips row
                         Row(
                           children: [
                             _buildInfoChip('${widget.film.durasi ~/ 60}h ${widget.film.durasi % 60}m'),
@@ -160,7 +159,57 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen> with SingleTicker
               ),
             ),
 
-            // ===== TABS: Jadwal / Detail =====
+            // Banner Diskon Ketentuan Promo Hari
+            if (isFriday)
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(colors: [Color(0xFF1b5e20), Color(0xFF2e7d32)]),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 4)],
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.stars, color: AppTheme.primaryGold, size: 28),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text('🎉 PROMO JUMAT HEMAT BERLAKU!', style: TextStyle(color: AppTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 13)),
+                          Text('Sesuai ketentuan promo hari Jumat, harga tiket berlaku diskon menjadi Rp 12.000 saja!', style: TextStyle(color: Colors.white, fontSize: 11)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else if (isMonday)
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(colors: [Color(0xFF0d47a1), Color(0xFF1565c0)]),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.discount, color: AppTheme.primaryGold, size: 28),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text('🎈 PROMO SENIN CERIA BERLAKU!', style: TextStyle(color: AppTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 13)),
+                          Text('Dapatkan potongan spesial tiket untuk hari Senin!', style: TextStyle(color: Colors.white, fontSize: 11)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
             TabBar(
               controller: _tabController,
               indicatorColor: AppTheme.primaryGold,
@@ -182,12 +231,12 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen> with SingleTicker
                   Row(
                     children: [
                       Text(
-                        '${_getMonthName(_dates[_selectedDateIndex])}',
+                        _getMonthName(selectedDate),
                         style: GoogleFonts.poppins(fontSize: 14, color: AppTheme.textMuted),
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '${_dates[_selectedDateIndex].year}',
+                        '${selectedDate.year}',
                         style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
                       ),
                     ],
@@ -201,19 +250,19 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen> with SingleTicker
                       itemBuilder: (ctx, index) {
                         final date = _dates[index];
                         final isSelected = index == _selectedDateIndex;
-                        final isToday = index == 0;
+                        final isDateFriday = date.weekday == DateTime.friday;
 
                         return GestureDetector(
                           onTap: () => setState(() => _selectedDateIndex = index),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
-                            width: 52,
+                            width: 54,
                             margin: const EdgeInsets.only(right: 10),
                             decoration: BoxDecoration(
-                              color: isSelected ? AppTheme.primaryGold : AppTheme.cardBgLight,
+                              color: isSelected ? AppTheme.primaryGold : (isDateFriday ? AppTheme.accentGreen.withAlpha(40) : AppTheme.cardBgLight),
                               borderRadius: BorderRadius.circular(14),
                               border: Border.all(
-                                color: isSelected ? AppTheme.primaryGold : Colors.white10,
+                                color: isSelected ? AppTheme.primaryGold : (isDateFriday ? AppTheme.accentGreen : Colors.white10),
                                 width: isSelected ? 2 : 1,
                               ),
                             ),
@@ -223,9 +272,9 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen> with SingleTicker
                                 Text(
                                   _getDayName(date),
                                   style: TextStyle(
-                                    color: isSelected ? Colors.black : AppTheme.textMuted,
+                                    color: isSelected ? Colors.black : (isDateFriday ? AppTheme.accentGreen : AppTheme.textMuted),
                                     fontSize: 12,
-                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                    fontWeight: isSelected || isDateFriday ? FontWeight.bold : FontWeight.normal,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -286,6 +335,8 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen> with SingleTicker
 
             // ===== CINEMA SCHEDULE CARDS =====
             ...cinemas.map((cinema) {
+              final double effectiveHarga = isFriday ? 12000 : (jadwalList.isNotEmpty ? jadwalList.first.hargaTiket : 40000);
+
               return Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Card(
@@ -294,7 +345,6 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen> with SingleTicker
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Cinema name with expand arrow
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -328,21 +378,27 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen> with SingleTicker
                           ),
                         ),
                         const SizedBox(height: 14),
-                        // Price row
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const Text('Reguler 2D', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                            Text(
-                              jadwalList.isNotEmpty
-                                  ? Formatters.currency(jadwalList.first.hargaTiket)
-                                  : 'Rp 40.000',
-                              style: const TextStyle(color: AppTheme.primaryGold, fontWeight: FontWeight.bold),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  Formatters.currency(effectiveHarga),
+                                  style: const TextStyle(color: AppTheme.primaryGold, fontWeight: FontWeight.bold),
+                                ),
+                                if (isFriday)
+                                  const Text(
+                                    'Promo Jumat Hemat Rp 12.000',
+                                    style: TextStyle(color: AppTheme.accentGreen, fontSize: 10, fontWeight: FontWeight.bold),
+                                  ),
+                              ],
                             ),
                           ],
                         ),
                         const SizedBox(height: 14),
-                        // Time slots
                         Wrap(
                           spacing: 10,
                           runSpacing: 10,
@@ -352,10 +408,12 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen> with SingleTicker
                               child: ElevatedButton(
                                 onPressed: () {
                                   if (jadwalList.isNotEmpty) {
+                                    final currentJadwal = jadwalList.first;
+                                    final promoJadwal = currentJadwal;
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) => PilihKursiScreen(jadwal: jadwalList.first),
+                                        builder: (_) => PilihKursiScreen(jadwal: promoJadwal),
                                       ),
                                     );
                                   } else {
@@ -387,7 +445,6 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen> with SingleTicker
   }
 
   List<String> _getTimeSlotsForCinema(String cinemaName) {
-    // Generate varied time slots per cinema
     final hash = cinemaName.hashCode.abs();
     final slots = <String>[];
     final baseSlots = ['10:00', '12:30', '13:00', '14:50', '15:30', '16:40', '18:30', '19:00', '20:20', '21:15'];

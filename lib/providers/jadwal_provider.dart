@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/jadwal_model.dart';
 import '../services/local_storage_service.dart';
+import '../services/api_service.dart';
 
 class JadwalProvider extends ChangeNotifier {
   final List<JadwalModel> _jadwalList = [];
@@ -12,6 +13,7 @@ class JadwalProvider extends ChangeNotifier {
 
   JadwalProvider() {
     _loadFromStorage();
+    _syncFromApi(); // Sinkronisasi dari API Laravel
   }
 
   void _loadFromStorage() {
@@ -20,6 +22,36 @@ class JadwalProvider extends ChangeNotifier {
       _jadwalList.addAll(saved.map((m) => JadwalModel.fromMap(m, m['id'] ?? '')));
     } else {
       _seedInitialJadwal();
+    }
+  }
+
+  /// Sinkronisasi data dari Laravel REST API (jika backend aktif)
+  Future<void> _syncFromApi() async {
+    try {
+      final result = await ApiService.get('/jadwal');
+      if (result != null && result['status'] == 'success' && result['data'] != null) {
+        final List apiJadwal = result['data'];
+        if (apiJadwal.isNotEmpty) {
+          _jadwalList.clear();
+          for (var j in apiJadwal) {
+            _jadwalList.add(JadwalModel(
+              id: j['id'] ?? '',
+              filmId: j['film_id'] ?? '',
+              judulFilm: j['film'] != null ? j['film']['judul'] ?? '' : '',
+              posterUrl: j['film'] != null ? j['film']['poster_url'] ?? '' : '',
+              studioId: j['studio_id'] ?? '',
+              namaStudio: j['studio'] != null ? j['studio']['nama'] ?? '' : '',
+              tanggal: DateTime.tryParse(j['tanggal'] ?? '') ?? DateTime.now(),
+              jam: j['jam_tayang'] ?? '',
+              hargaTiket: (j['harga'] ?? 0).toDouble(),
+            ));
+          }
+          notifyListeners();
+          _autoSave();
+        }
+      }
+    } catch (e) {
+      debugPrint('JadwalProvider: API sync gagal (mode offline): $e');
     }
   }
 
@@ -123,6 +155,15 @@ class JadwalProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
     _autoSave();
+
+    // Sync ke API Laravel
+    ApiService.post('/jadwal', {
+      'film_id': filmId,
+      'studio_id': studioId,
+      'tanggal': tanggal.toIso8601String().split('T').first,
+      'jam_tayang': jam,
+      'harga': hargaTiket,
+    });
   }
 
   Future<void> updateJadwal({
@@ -159,6 +200,15 @@ class JadwalProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
     _autoSave();
+
+    // Sync ke API Laravel
+    ApiService.put('/jadwal/$id', {
+      'film_id': filmId,
+      'studio_id': studioId,
+      'tanggal': tanggal.toIso8601String().split('T').first,
+      'jam_tayang': jam,
+      'harga': hargaTiket,
+    });
   }
 
   Future<void> deleteJadwal(String id) async {
@@ -171,5 +221,8 @@ class JadwalProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
     _autoSave();
+
+    // Sync ke API Laravel
+    ApiService.delete('/jadwal/$id');
   }
 }

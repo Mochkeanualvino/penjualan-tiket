@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../providers/studio_provider.dart';
 import '../../models/studio_model.dart';
 import '../../utils/theme.dart';
+import '../../services/auto_save_service.dart';
+import '../../widgets/auto_save_status_indicator.dart';
 
 class KelolaStudioScreen extends StatelessWidget {
   const KelolaStudioScreen({super.key});
@@ -11,64 +13,109 @@ class KelolaStudioScreen extends StatelessWidget {
     final namaController = TextEditingController(text: studio?.namaStudio ?? '');
     final kapasitasController = TextEditingController(text: studio != null ? studio.kapasitas.toString() : '');
     final formKey = GlobalKey<FormState>();
+    final String draftKey = studio == null ? 'form_studio_tambah' : 'form_studio_edit_${studio.id}';
+
+    // Muat draft yang tersimpan sebelumnya (auto-restore)
+    if (studio == null) {
+      final draft = AutoSaveService.loadDraft(draftKey);
+      if (draft != null) {
+        namaController.text = draft['namaStudio'] ?? '';
+        kapasitasController.text = draft['kapasitas'] ?? '';
+      }
+    }
+
+    AutoSaveStatus currentStatus = AutoSaveStatus.idle;
+
+    void triggerAutoSave(VoidCallback setStateDialog) {
+      AutoSaveService.onInputChanged(
+        formKey: draftKey,
+        data: {
+          'namaStudio': namaController.text,
+          'kapasitas': kapasitasController.text,
+        },
+        onStatusChanged: () {
+          setStateDialog(() {
+            currentStatus = AutoSaveService.getStatus(draftKey);
+          });
+        },
+      );
+    }
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(studio == null ? 'Tambah Studio' : 'Edit Studio'),
-        content: Form(
-          key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: namaController,
-                decoration: const InputDecoration(labelText: 'Nama Studio'),
-                validator: (v) => v == null || v.isEmpty ? 'Wajib diisi' : null,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setStateDialog) {
+          void listener() => triggerAutoSave(setStateDialog);
+          namaController.removeListener(listener);
+          kapasitasController.removeListener(listener);
+          namaController.addListener(listener);
+          kapasitasController.addListener(listener);
+
+          return AlertDialog(
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(studio == null ? 'Tambah Studio' : 'Edit Studio'),
+                const SizedBox(height: 8),
+                AutoSaveStatusIndicator(status: currentStatus),
+              ],
+            ),
+            content: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: namaController,
+                    decoration: const InputDecoration(labelText: 'Nama Studio'),
+                    validator: (v) => v == null || v.isEmpty ? 'Wajib diisi' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: kapasitasController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Kapasitas Kursi'),
+                    validator: (v) => v == null || v.isEmpty ? 'Wajib diisi' : null,
+                  ),
+                ],
               ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: kapasitasController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Kapasitas Kursi'),
-                validator: (v) => v == null || v.isEmpty ? 'Wajib diisi' : null,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Batal'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  if (formKey.currentState!.validate()) {
+                    final studioProvider = Provider.of<StudioProvider>(context, listen: false);
+                    if (studio == null) {
+                      await studioProvider.addStudio(
+                        namaStudio: namaController.text.trim(),
+                        kapasitas: int.parse(kapasitasController.text.trim()),
+                      );
+                    } else {
+                      await studioProvider.updateStudio(
+                        id: studio.id,
+                        namaStudio: namaController.text.trim(),
+                        kapasitas: int.parse(kapasitasController.text.trim()),
+                      );
+                    }
+                    AutoSaveService.clearDraft(draftKey);
+                    if (ctx.mounted) Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(studio == null ? 'Studio berhasil ditambahkan!' : 'Studio berhasil diperbarui!'),
+                        backgroundColor: AppTheme.accentGreen,
+                      ),
+                    );
+                  }
+                },
+                child: const Text('Simpan'),
               ),
             ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (formKey.currentState!.validate()) {
-                final studioProvider = Provider.of<StudioProvider>(context, listen: false);
-                if (studio == null) {
-                  await studioProvider.addStudio(
-                    namaStudio: namaController.text.trim(),
-                    kapasitas: int.parse(kapasitasController.text.trim()),
-                  );
-                } else {
-                  await studioProvider.updateStudio(
-                    id: studio.id,
-                    namaStudio: namaController.text.trim(),
-                    kapasitas: int.parse(kapasitasController.text.trim()),
-                  );
-                }
-                if (ctx.mounted) Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(studio == null ? 'Studio berhasil ditambahkan!' : 'Studio berhasil diperbarui!'),
-                    backgroundColor: AppTheme.accentGreen,
-                  ),
-                );
-              }
-            },
-            child: const Text('Simpan'),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
