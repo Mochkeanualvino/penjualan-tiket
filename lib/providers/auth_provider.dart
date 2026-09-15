@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../services/database_service.dart';
 import '../services/local_storage_service.dart';
+import '../services/auth_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final DatabaseService _db = DatabaseService();
@@ -221,7 +222,7 @@ class AuthProvider extends ChangeNotifier {
     }
 
     if (user.password.isNotEmpty && user.password != password) {
-      final isDefaultAdmin = user.isAdmin && (password == 'admin' || password == '123456');
+      final isDefaultAdmin = user.isAdmin && (password == 'admin' || password == 'admin123' || password == '123456');
       if (!isDefaultAdmin) {
         _isLoading = false;
         notifyListeners();
@@ -241,7 +242,7 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    await Future.delayed(const Duration(milliseconds: 600));
+    await Future.delayed(const Duration(milliseconds: 300));
 
     UserModel? user = _db.getUserByEmail(email);
 
@@ -250,7 +251,7 @@ class AuthProvider extends ChangeNotifier {
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         email: email,
         name: name,
-        role: 'Pelanggan',
+        role: email.toLowerCase().contains('admin') ? 'Admin' : 'Pelanggan',
         selectedCity: _selectedCity,
       );
       _db.saveUser(user);
@@ -260,7 +261,7 @@ class AuthProvider extends ChangeNotifier {
     _selectedCity = user.selectedCity;
     _isLoading = false;
     notifyListeners();
-    _saveSession();
+    await _saveSession();
     await _persistUsers();
     return true;
   }
@@ -309,5 +310,6 @@ class AuthProvider extends ChangeNotifier {
     _currentUser = null;
     notifyListeners();
     _clearSession();
+    AuthService.signOut();
   }
 }

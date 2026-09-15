@@ -5,7 +5,7 @@ Backend REST API untuk aplikasi Flutter Penjualan Tiket Bioskop.
 ## Prasyarat
 - PHP >= 8.1
 - Composer
-- SQLite (default) atau MySQL
+- MySQL dari XAMPP
 
 ## Instalasi
 
@@ -21,8 +21,7 @@ copy .env.example .env
 # Generate app key
 php artisan key:generate
 
-# Buat file database SQLite
-type nul > database/database.sqlite
+# Buat database `tiket_bioskop` melalui phpMyAdmin terlebih dahulu
 
 # Jalankan migrasi & seeder
 php artisan migrate --seed
@@ -82,5 +81,5 @@ Server akan berjalan di `http://localhost:8000`
 | PUT | `/api/v1/transaksi/{id}/status` | Update status transaksi |
 
 ## Default Credentials (Seeder)
-- **Admin**: admin@bioskop.com / admin123
+- **Admin**: admin@cinema.com / 12345
 - **Pelanggan**: pelanggan@bioskop.com / user123

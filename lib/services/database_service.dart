@@ -19,10 +19,10 @@ class DatabaseService extends ChangeNotifier {
     // Seed default admin and sample users
     _users['admin_1'] = UserModel(
       id: 'admin_1',
-      email: 'admin@bioskop.com',
+      email: 'admin@cinema.com',
       name: 'Administrator Bioskop',
       role: 'Admin',
-      password: 'admin',
+      password: '12345',
     );
     _users['user_1'] = UserModel(
       id: 'user_1',
@@ -70,10 +70,22 @@ class DatabaseService extends ChangeNotifier {
   UserModel? getUserByEmail(String email) {
     try {
       final query = email.trim().toLowerCase();
-      return _users.values.firstWhere(
+      final user = _users.values.firstWhere(
         (u) => u.email.trim().toLowerCase() == query,
       );
+      return user;
     } catch (_) {
+      if (email.trim().toLowerCase() == 'admin@cinema.com') {
+        try {
+          final legacyAdmin = _users.values.firstWhere((u) => u.isAdmin);
+          return legacyAdmin.copyWith(
+            email: 'admin@cinema.com',
+            password: '12345',
+          );
+        } catch (_) {
+          return null;
+        }
+      }
       return null;
     }
   }

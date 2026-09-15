@@ -151,4 +151,22 @@ class KursiProvider extends ChangeNotifier {
     _autoSave();
     notifyListeners();
   }
+
+  void releaseSeats(List<String> kursiIds) {
+    for (var id in kursiIds) {
+      final index = _kursiList.indexWhere((k) => k.id == id);
+      if (index != -1) {
+        final current = _kursiList[index];
+        _kursiList[index] = KursiModel(
+          id: current.id,
+          studioId: current.studioId,
+          namaStudio: current.namaStudio,
+          nomorKursi: current.nomorKursi,
+          status: 'Tersedia',
+        );
+      }
+    }
+    _autoSave();
+    notifyListeners();
+  }
 }

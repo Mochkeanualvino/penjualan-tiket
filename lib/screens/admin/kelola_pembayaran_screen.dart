@@ -21,9 +21,18 @@ class KelolaPembayaranScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Kelola Pembayaran',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.primaryGold),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Kelola Pembayaran',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.primaryGold),
+                ),
+                Text(
+                  '${listPembayaran.length} Catatan Pembayaran',
+                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                ),
+              ],
             ),
             const SizedBox(height: 20),
             listPembayaran.isEmpty
@@ -42,10 +51,12 @@ class KelolaPembayaranScreen extends StatelessWidget {
                     child: SizedBox(
                       width: double.infinity,
                       child: DataTable(
+                        columnSpacing: 14,
                         columns: const [
                           DataColumn(label: Text('ID Pembayaran')),
                           DataColumn(label: Text('ID Transaksi')),
                           DataColumn(label: Text('Metode')),
+                          DataColumn(label: Text('Pengirim / Ref')),
                           DataColumn(label: Text('Jumlah')),
                           DataColumn(label: Text('Tanggal')),
                           DataColumn(label: Text('Status')),
@@ -54,17 +65,28 @@ class KelolaPembayaranScreen extends StatelessWidget {
                           Color statusColor = AppTheme.primaryGold;
                           if (pay.status == 'Berhasil') statusColor = AppTheme.accentGreen;
                           if (pay.status == 'Gagal') statusColor = AppTheme.accentRed;
+                          if (pay.status == 'Menunggu Verifikasi') statusColor = Colors.amber;
+
+                          final refInfo = pay.nomorReferensi != null && pay.nomorReferensi!.isNotEmpty
+                              ? pay.nomorReferensi!
+                              : (pay.nomorPengirim ?? '-');
 
                           return DataRow(
                             cells: [
                               DataCell(Text(pay.id, style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryGold))),
                               DataCell(Text(pay.transaksiId)),
                               DataCell(Text(pay.metode)),
+                              DataCell(
+                                Text(
+                                  refInfo,
+                                  style: const TextStyle(fontSize: 11, color: Colors.white70),
+                                ),
+                              ),
                               DataCell(Text(Formatters.currency(pay.jumlah))),
                               DataCell(Text(Formatters.formatShortDate(pay.tanggalPembayaran))),
                               DataCell(
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
                                     color: statusColor.withAlpha(51),
                                     borderRadius: BorderRadius.circular(6),
@@ -72,7 +94,7 @@ class KelolaPembayaranScreen extends StatelessWidget {
                                   ),
                                   child: Text(
                                     pay.status,
-                                    style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 12),
+                                    style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 11),
                                   ),
                                 ),
                               ),
@@ -88,3 +110,4 @@ class KelolaPembayaranScreen extends StatelessWidget {
     );
   }
 }
+

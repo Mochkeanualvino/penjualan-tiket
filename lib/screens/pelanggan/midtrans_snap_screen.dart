@@ -18,6 +18,18 @@ enum MidtransPaymentStatus {
   failed,
 }
 
+class MidtransSnapResult {
+  final MidtransPaymentStatus status;
+  final String? nomorPengirim;
+  final String? nomorReferensi;
+
+  const MidtransSnapResult({
+    required this.status,
+    this.nomorPengirim,
+    this.nomorReferensi,
+  });
+}
+
 class MidtransSnapScreen extends StatefulWidget {
   final String orderId;
   final double grossAmount;
@@ -81,7 +93,7 @@ class _MidtransSnapScreenState extends State<MidtransSnapScreen> {
       } else {
         timer.cancel();
         if (mounted) {
-          Navigator.pop(context, MidtransPaymentStatus.canceled);
+          Navigator.pop(context, const MidtransSnapResult(status: MidtransPaymentStatus.canceled));
         }
       }
     });
@@ -106,9 +118,16 @@ class _MidtransSnapScreenState extends State<MidtransSnapScreen> {
     }
   }
 
-  void _finishPayment(MidtransPaymentStatus status) {
+  void _finishPayment(MidtransPaymentStatus status, {String? nomorPengirim, String? nomorReferensi}) {
     _countdownTimer?.cancel();
-    Navigator.pop(context, status);
+    Navigator.pop(
+      context,
+      MidtransSnapResult(
+        status: status,
+        nomorPengirim: nomorPengirim ?? _phoneController.text.trim(),
+        nomorReferensi: nomorReferensi,
+      ),
+    );
   }
 
   String _getMethodName(String method) {
@@ -215,171 +234,345 @@ class _MidtransSnapScreenState extends State<MidtransSnapScreen> {
   }
 
   void _showPaymentVerificationModal() {
+    bool isConfirmed = false;
+    bool isVerifying = false;
+    final refController = TextEditingController();
+
     showModalBottomSheet(
       context: context,
       isDismissible: false,
       enableDrag: false,
+      isScrollControlled: true,
       backgroundColor: const Color(0xFF1E293B),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) {
-        final minutes = (_remainingSeconds ~/ 60).toString().padLeft(2, '0');
-        final seconds = (_remainingSeconds % 60).toString().padLeft(2, '0');
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final minutes = (_remainingSeconds ~/ 60).toString().padLeft(2, '0');
+            final seconds = (_remainingSeconds % 60).toString().padLeft(2, '0');
 
-        return Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 48,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.white24,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 24.0,
+                right: 24.0,
+                top: 24.0,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 24.0,
               ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    width: 48,
+                    height: 4,
                     decoration: BoxDecoration(
-                      color: _getMethodColor(_selectedMethod).withAlpha(40),
-                      shape: BoxShape.circle,
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(2),
                     ),
-                    child: Icon(Icons.account_balance_wallet, color: _getMethodColor(_selectedMethod), size: 28),
                   ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Konfirmasi Pembayaran ${_getMethodName(_selectedMethod)}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: _getMethodColor(_selectedMethod).withAlpha(40),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.account_balance_wallet, color: _getMethodColor(_selectedMethod), size: 28),
+                      ),
+                      const SizedBox(width: 12),
+                      Flexible(
+                        child: Text(
+                          'Konfirmasi Transfer ${_getMethodName(_selectedMethod)}',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white12),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0F172A),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white12),
+                    ),
+                    child: Column(
                       children: [
-                        const Text('Nomor Tujuan Penerima:', style: TextStyle(color: Colors.white70, fontSize: 12)),
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
-                              '085872254708',
-                              style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryGold, fontSize: 13),
+                            const Text('Nomor Tujuan Penerima:', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                            Row(
+                              children: [
+                                const Text(
+                                  '085872254708',
+                                  style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryGold, fontSize: 13),
+                                ),
+                                const SizedBox(width: 4),
+                                InkWell(
+                                  onTap: () {
+                                    Clipboard.setData(const ClipboardData(text: '085872254708'));
+                                    ScaffoldMessenger.of(this.context).showSnackBar(
+                                      const SnackBar(content: Text('📋 Nomor tujuan disalin!'), duration: Duration(seconds: 1)),
+                                    );
+                                  },
+                                  child: const Icon(Icons.copy, size: 14, color: AppTheme.primaryGold),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 4),
-                            InkWell(
-                              onTap: () {
-                                Clipboard.setData(const ClipboardData(text: '085872254708'));
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('📋 Nomor tujuan disalin!'), duration: Duration(seconds: 1)),
-                                );
-                              },
-                              child: const Icon(Icons.copy, size: 14, color: AppTheme.primaryGold),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        const Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Atas Nama Penerima:', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                            Text('KENTICKET CINEMA', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12)),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Nominal Pembayaran:', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                            Text(
+                              Formatters.currency(widget.grossAmount),
+                              style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.accentGreen, fontSize: 14),
                             ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Akun Pengirim:', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                            Text(_phoneController.text.trim(), style: const TextStyle(color: Colors.white, fontSize: 12)),
                           ],
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
-                        Text('Atas Nama Penerima:', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                        Text('KENTICKET CINEMA', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12)),
-                      ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Input ID Referensi Transaksi
+                  TextField(
+                    controller: refController,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: InputDecoration(
+                      labelText: 'Nomor ID Referensi Transaksi DANA (Opsional)',
+                      labelStyle: const TextStyle(color: Colors.white54, fontSize: 12),
+                      hintText: 'Contoh: 202609151122... (dari struk DANA)',
+                      hintStyle: const TextStyle(color: Colors.white24, fontSize: 11),
+                      filled: true,
+                      fillColor: const Color(0xFF0F172A),
+                      prefixIcon: const Icon(Icons.receipt_long, color: AppTheme.primaryGold, size: 18),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Colors.white12)),
+                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Colors.white12)),
+                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppTheme.primaryGold)),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     ),
-                    const SizedBox(height: 6),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // Box Alur Verifikasi Transparan
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withAlpha(25),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.blue.withAlpha(80)),
+                    ),
+                    child: const Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Nominal Pembayaran:', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                        Text(
-                          Formatters.currency(widget.grossAmount),
-                          style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.accentGreen, fontSize: 14),
+                        Icon(Icons.info_outline, color: Color(0xFF60A5FA), size: 18),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Admin bioskop akan memeriksa mutasi saldo masuk di akun 085872254708. Tiket Anda berstatus "Menunggu Verifikasi Admin" dan otomatis aktif begitu saldo terkonfirmasi diterima.',
+                            style: TextStyle(color: Colors.white70, fontSize: 11, height: 1.35),
+                          ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
+                  ),
+
+                  const SizedBox(height: 10),
+                  Text(
+                    'Sisa Waktu: $minutes:$seconds',
+                    style: const TextStyle(color: Colors.white54, fontSize: 11),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Checkbox konfirmasi wajib sebelum bisa klik kirim
+                  Container(
+                    decoration: BoxDecoration(
+                      color: isConfirmed
+                          ? AppTheme.accentGreen.withAlpha(20)
+                          : const Color(0xFF0F172A),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isConfirmed
+                            ? AppTheme.accentGreen.withAlpha(120)
+                            : Colors.white12,
+                      ),
+                    ),
+                    child: CheckboxListTile(
+                      value: isConfirmed,
+                      onChanged: isVerifying
+                          ? null
+                          : (val) {
+                              setModalState(() {
+                                isConfirmed = val ?? false;
+                              });
+                            },
+                      activeColor: AppTheme.accentGreen,
+                      checkColor: Colors.black,
+                      title: const Text(
+                        'Saya menyatakan telah mentransfer saldo ke nomor tujuan penerima di atas.',
+                        style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
+                      ),
+                      controlAffinity: ListTileControlAffinity.leading,
+                      dense: true,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // Tombol kirim konfirmasi ke admin
+                  if (isVerifying)
+                    Container(
+                      width: double.infinity,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0F172A),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppTheme.primaryGold.withAlpha(60)),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              color: AppTheme.primaryGold,
+                              strokeWidth: 2.5,
+                            ),
+                          ),
+                          SizedBox(width: 12),
+                          Text(
+                            '📤 Mengirim konfirmasi ke Admin...',
+                            style: TextStyle(
+                              color: AppTheme.primaryGold,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isConfirmed
+                              ? AppTheme.accentGreen
+                              : Colors.grey.shade700,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        onPressed: isConfirmed
+                            ? () async {
+                                setModalState(() {
+                                  isVerifying = true;
+                                });
+
+                                await Future.delayed(const Duration(milliseconds: 1200));
+
+                                if (mounted) {
+                                  Navigator.pop(ctx);
+                                  _finishPayment(
+                                    MidtransPaymentStatus.pending,
+                                    nomorPengirim: _phoneController.text.trim(),
+                                    nomorReferensi: refController.text.trim().isNotEmpty
+                                        ? refController.text.trim()
+                                        : null,
+                                  );
+                                }
+                              }
+                            : () {
+                                ScaffoldMessenger.of(this.context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      '❌ Harap lakukan transfer saldo terlebih dahulu dan centang konfirmasi!',
+                                    ),
+                                    backgroundColor: AppTheme.accentRed,
+                                    duration: Duration(seconds: 3),
+                                  ),
+                                );
+                              },
+                        icon: Icon(
+                          isConfirmed ? Icons.send_rounded : Icons.block,
+                          color: isConfirmed ? Colors.black : Colors.white54,
+                          size: 18,
+                        ),
+                        label: Text(
+                          isConfirmed
+                              ? '📤 KIRIM KONFIRMASI KE ADMIN'
+                              : '⚠️ CENTANG KONFIRMASI DULU',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: isConfirmed ? Colors.black : Colors.white54,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  const SizedBox(height: 8),
+                  if (!isVerifying)
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Akun Pengirim:', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                        Text(_phoneController.text.trim(), style: const TextStyle(color: Colors.white, fontSize: 12)),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(color: _getMethodColor(_selectedMethod)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              _launchPaymentApp();
+                              _showPaymentVerificationModal();
+                            },
+                            icon: Icon(Icons.refresh, size: 16, color: _getMethodColor(_selectedMethod)),
+                            label: Text(
+                              'Buka Ulang ${_getMethodName(_selectedMethod)}',
+                              style: TextStyle(color: _getMethodColor(_selectedMethod), fontSize: 11),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            child: const Text('Batal', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                          ),
+                        ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Sisa Waktu: $minutes:$seconds • Silakan pastikan saldo sudah terkirim.',
-                style: const TextStyle(color: Colors.white54, fontSize: 11),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.accentGreen,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    _finishPayment(MidtransPaymentStatus.success);
-                  },
-                  icon: const Icon(Icons.check_circle, color: Colors.black),
-                  label: const Text(
-                    '✅ SAYA SUDAH SELESAI BAYAR / SALDO TERKIRIM',
-                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 12),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: _getMethodColor(_selectedMethod)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        _launchPaymentApp();
-                        _showPaymentVerificationModal();
-                      },
-                      icon: Icon(Icons.refresh, size: 16, color: _getMethodColor(_selectedMethod)),
-                      label: Text(
-                        'Buka Ulang ${_getMethodName(_selectedMethod)}',
-                        style: TextStyle(color: _getMethodColor(_selectedMethod), fontSize: 11),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      child: const Text('Batal', style: TextStyle(color: Colors.white54, fontSize: 12)),
-                    ),
-                  ),
                 ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

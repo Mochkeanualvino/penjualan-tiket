@@ -2,12 +2,14 @@ class PembayaranModel {
   final String id;
   final String transaksiId;
   final String metode; // 'Midtrans Snap', 'Transfer Bank', 'QRIS', 'E-Wallet'
-  final String status; // 'Pending', 'Berhasil', 'Gagal'
+  final String status; // 'Pending', 'Menunggu Verifikasi', 'Berhasil', 'Gagal'
   final double jumlah;
   final DateTime tanggalPembayaran;
   final String? snapToken;
   final String? orderId;
   final String? vaNumber;
+  final String? nomorPengirim;
+  final String? nomorReferensi;
 
   PembayaranModel({
     required this.id,
@@ -19,6 +21,8 @@ class PembayaranModel {
     this.snapToken,
     this.orderId,
     this.vaNumber,
+    this.nomorPengirim,
+    this.nomorReferensi,
   });
 
   factory PembayaranModel.fromMap(Map<String, dynamic> map, String docId) {
@@ -34,6 +38,8 @@ class PembayaranModel {
       snapToken: map['snapToken'],
       orderId: map['orderId'],
       vaNumber: map['vaNumber'],
+      nomorPengirim: map['nomorPengirim'],
+      nomorReferensi: map['nomorReferensi'],
     );
   }
 
@@ -47,6 +53,8 @@ class PembayaranModel {
       'snapToken': snapToken,
       'orderId': orderId,
       'vaNumber': vaNumber,
+      'nomorPengirim': nomorPengirim,
+      'nomorReferensi': nomorReferensi,
     };
   }
 }

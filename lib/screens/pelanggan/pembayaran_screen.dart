@@ -8,6 +8,7 @@ import '../../utils/theme.dart';
 import '../../utils/formatters.dart';
 import 'notifikasi_screen.dart';
 import 'midtrans_snap_screen.dart';
+import 'menunggu_verifikasi_screen.dart';
 
 class PembayaranScreen extends StatefulWidget {
   final TransaksiModel transaksi;
@@ -128,7 +129,7 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
       return;
     }
 
-    final result = await Navigator.push<MidtransPaymentStatus>(
+    final result = await Navigator.push<dynamic>(
       context,
       MaterialPageRoute(
         builder: (_) => MidtransSnapScreen(
@@ -143,7 +144,59 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
       ),
     );
 
-    if (result == MidtransPaymentStatus.success && mounted) {
+    MidtransPaymentStatus? status;
+    String? senderPhone = phone;
+    String? refNumber;
+
+    if (result is MidtransSnapResult) {
+      status = result.status;
+      if (result.nomorPengirim != null && result.nomorPengirim!.isNotEmpty) {
+        senderPhone = result.nomorPengirim;
+      }
+      refNumber = result.nomorReferensi;
+    } else if (result is MidtransPaymentStatus) {
+      status = result;
+    }
+
+    if (status == MidtransPaymentStatus.pending && mounted) {
+      // OPSI 3: Menunggu Verifikasi Saldo Masuk oleh Admin
+      final trxProvider = Provider.of<TransaksiProvider>(context, listen: false);
+      final success = await trxProvider.submitPembayaranMenungguVerifikasi(
+        transaksiId: widget.transaksi.id,
+        metode: 'Midtrans (${_getMethodName(_selectedMethod)})',
+        nomorPengirim: senderPhone,
+        nomorReferensi: refNumber,
+      );
+
+      if (success && mounted) {
+        Provider.of<KursiProvider>(context, listen: false).reserveSeats(widget.kursiIdsToReserve);
+
+        NotificationService().addNotification(
+          userId: widget.transaksi.userId,
+          title: '⏳ Pembayaran Menunggu Verifikasi',
+          message: 'Bukti pembayaran tiket ${widget.transaksi.filmJudul} telah dikirimkan ke Admin. Tiket akan aktif begitu saldo terkonfirmasi diterima.',
+          icon: Icons.hourglass_top_rounded,
+          color: Colors.amber,
+        );
+
+        final updatedTrx = trxProvider.transaksiList.firstWhere(
+          (t) => t.id == widget.transaksi.id,
+          orElse: () => widget.transaksi,
+        );
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => MenungguVerifikasiScreen(
+              transaksi: updatedTrx,
+              metode: _getMethodName(_selectedMethod),
+              nomorPengirim: senderPhone,
+              nomorReferensi: refNumber,
+            ),
+          ),
+        );
+      }
+    } else if (status == MidtransPaymentStatus.success && mounted) {
       final trxProvider = Provider.of<TransaksiProvider>(context, listen: false);
       bool success = await trxProvider.processPembayaran(
         transaksiId: widget.transaksi.id,
@@ -171,7 +224,7 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
 
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
-    } else if (result == MidtransPaymentStatus.canceled && mounted) {
+    } else if (status == MidtransPaymentStatus.canceled && mounted) {
       NotificationService().addNotification(
         userId: widget.transaksi.userId,
         title: '❌ Pembayaran Dibatalkan',

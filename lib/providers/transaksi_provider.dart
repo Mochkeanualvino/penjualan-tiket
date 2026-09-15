@@ -178,7 +178,75 @@ class TransaksiProvider extends ChangeNotifier {
     return false;
   }
 
-  Future<void> updateStatusTransaksi(String transaksiId, String newStatus) async {
+  /// Pelanggan mengirimkan konfirmasi transfer untuk diverifikasi oleh Admin
+  Future<bool> submitPembayaranMenungguVerifikasi({
+    required String transaksiId,
+    required String metode,
+    String? nomorPengirim,
+    String? nomorReferensi,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    final index = _transaksiList.indexWhere((t) => t.id == transaksiId);
+    if (index != -1) {
+      final currentTrx = _transaksiList[index];
+      final newPembayaran = PembayaranModel(
+        id: 'pay_${const Uuid().v4().substring(0, 8)}',
+        transaksiId: transaksiId,
+        metode: metode,
+        status: 'Menunggu Verifikasi',
+        jumlah: currentTrx.totalHarga,
+        tanggalPembayaran: DateTime.now(),
+        nomorPengirim: nomorPengirim,
+        nomorReferensi: nomorReferensi,
+      );
+
+      _transaksiList[index] = TransaksiModel(
+        id: currentTrx.id,
+        userId: currentTrx.userId,
+        userEmail: currentTrx.userEmail,
+        filmJudul: currentTrx.filmJudul,
+        posterUrl: currentTrx.posterUrl,
+        namaStudio: currentTrx.namaStudio,
+        tanggalTayang: currentTrx.tanggalTayang,
+        jamTayang: currentTrx.jamTayang,
+        daftarKursi: currentTrx.daftarKursi,
+        totalHarga: currentTrx.totalHarga,
+        status: 'Menunggu Verifikasi',
+        tanggalTransaksi: currentTrx.tanggalTransaksi,
+        pembayaran: newPembayaran,
+      );
+
+      _isLoading = false;
+      notifyListeners();
+      _autoSave();
+
+      // Sync status ke API Laravel
+      ApiService.put('/transaksi/$transaksiId/status', {'status': 'Menunggu Verifikasi'});
+
+      return true;
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    _autoSave();
+    return false;
+  }
+
+  /// Admin menerima pembayaran setelah memastikan saldo benar-benar masuk ke akun penerima
+  Future<bool> konfirmasiPembayaranAdmin(String transaksiId) async {
+    return await updateStatusTransaksi(transaksiId, 'Berhasil');
+  }
+
+  /// Admin menolak pembayaran jika saldo belum masuk di mutasi penerima
+  Future<bool> tolakPembayaranAdmin(String transaksiId) async {
+    return await updateStatusTransaksi(transaksiId, 'Ditolak');
+  }
+
+  Future<bool> updateStatusTransaksi(String transaksiId, String newStatus) async {
     _isLoading = true;
     notifyListeners();
 
@@ -187,6 +255,11 @@ class TransaksiProvider extends ChangeNotifier {
     final index = _transaksiList.indexWhere((t) => t.id == transaksiId);
     if (index != -1) {
       final current = _transaksiList[index];
+      String payStatus = 'Pending';
+      if (newStatus == 'Berhasil') payStatus = 'Berhasil';
+      if (newStatus == 'Ditolak' || newStatus == 'Dibatalkan') payStatus = 'Gagal';
+      if (newStatus == 'Menunggu Verifikasi') payStatus = 'Menunggu Verifikasi';
+
       _transaksiList[index] = TransaksiModel(
         id: current.id,
         userId: current.userId,
@@ -205,19 +278,30 @@ class TransaksiProvider extends ChangeNotifier {
                 id: current.pembayaran!.id,
                 transaksiId: current.pembayaran!.transaksiId,
                 metode: current.pembayaran!.metode,
-                status: newStatus == 'Berhasil' ? 'Berhasil' : (newStatus == 'Dibatalkan' ? 'Gagal' : 'Pending'),
+                status: payStatus,
                 jumlah: current.pembayaran!.jumlah,
                 tanggalPembayaran: current.pembayaran!.tanggalPembayaran,
+                snapToken: current.pembayaran!.snapToken,
+                orderId: current.pembayaran!.orderId,
+                vaNumber: current.pembayaran!.vaNumber,
+                nomorPengirim: current.pembayaran!.nomorPengirim,
+                nomorReferensi: current.pembayaran!.nomorReferensi,
               )
             : null,
       );
+
+      _isLoading = false;
+      notifyListeners();
+      _autoSave();
+
+      // Sync status ke API Laravel
+      ApiService.put('/transaksi/$transaksiId/status', {'status': newStatus});
+      return true;
     }
 
     _isLoading = false;
     notifyListeners();
     _autoSave();
-
-    // Sync status ke API Laravel
-    ApiService.put('/transaksi/$transaksiId/status', {'status': newStatus});
+    return false;
   }
 }

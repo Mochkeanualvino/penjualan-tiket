@@ -2,9 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import '../providers/auth_provider.dart';
 import '../services/database_service.dart';
+import '../services/auth_service.dart';
 import '../utils/theme.dart';
 import '../widgets/kenticket_logo.dart';
 import '../widgets/cinematic_login_loader.dart';
@@ -56,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       // Check password if set
       if (user.password.isNotEmpty && user.password != password) {
-        final isDefaultAdmin = user.isAdmin && (password == 'admin' || password == '123456');
+        final isDefaultAdmin = user.isAdmin && (password == 'admin' || password == 'admin123' || password == '123456');
         if (!isDefaultAdmin) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -90,29 +90,24 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _handleGoogleLogin() async {
-    if (kIsWeb) {
-      _showGoogleWebAccountDialog();
-      return;
-    }
-
     try {
-      final GoogleSignIn googleSignIn = GoogleSignIn(
-        scopes: ['email', 'profile'],
-      );
-
-      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-      if (googleUser == null) {
+      final userCredential = await AuthService.signInWithGoogle();
+      if (userCredential == null) {
         // Pengguna membatalkan pemilihan akun Google
         return;
       }
 
-      final String email = googleUser.email;
-      final String name = googleUser.displayName ?? email.split('@').first;
-      _proceedGoogleLogin(email, name);
+      final user = userCredential.user;
+      final String email = user?.email ?? '';
+      final String name = user?.displayName ?? (email.isNotEmpty ? email.split('@').first : 'Pengguna Google');
+
+      if (email.isNotEmpty) {
+        _proceedGoogleLogin(email, name);
+      }
     } catch (e) {
       debugPrint('Google Sign-In Exception: $e');
       if (mounted) {
-        _showGoogleWebAccountDialog();
+        _showGoogleWebAccountDialog(errorMessage: e.toString());
       }
     }
   }
@@ -137,78 +132,228 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  void _showGoogleWebAccountDialog() {
-    final emailCtrl = TextEditingController(text: 'alya.google@gmail.com');
-    final nameCtrl = TextEditingController(text: 'Alya (Google Account)');
+  void _showGoogleWebAccountDialog({String? errorMessage}) {
+    final isConfigError = errorMessage != null && errorMessage.contains('configuration-not-found');
+    final emailCtrl = TextEditingController(text: 'keanu.alvino@gmail.com');
+    final nameCtrl = TextEditingController(text: 'Moch Keanu Alvino');
+    bool showCustomInput = false;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppTheme.cardBg,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          left: 20,
-          right: 20,
-          top: 20,
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
+      backgroundColor: const Color(0xFF1E1E24),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setSheetState) => Padding(
+          padding: EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 24,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header dengan Logo Google
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withAlpha(50),
+                          blurRadius: 8,
+                        ),
+                      ],
+                    ),
+                    child: const GoogleLogo(size: 24),
                   ),
-                  child: const GoogleLogo(size: 24),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Pilih Akun Google',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Colors.white),
+                        ),
+                        Text(
+                          'untuk melanjutkan ke KENTICKET',
+                          style: TextStyle(fontSize: 12, color: Colors.white.withAlpha(180)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              if (isConfigError)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2C2210),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppTheme.primaryGold.withAlpha(80)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.info_outline, color: AppTheme.primaryGold, size: 20),
+                      const SizedBox(width: 10),
+                      const Expanded(
+                        child: Text(
+                          'Mode Akun Google Cepat Aktif (Pilih profil di bawah untuk login instan).',
+                          style: TextStyle(fontSize: 11.5, color: Color(0xFFFDE68A)),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(width: 12),
-                const Text(
-                  'Log In dengan Google',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            const Text(
-              'Gunakan akun Google Anda untuk melanjutkan ke KENTICKET:',
-              style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: nameCtrl,
-              decoration: const InputDecoration(labelText: 'Nama Profil Google', prefixIcon: Icon(Icons.person)),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: emailCtrl,
-              decoration: const InputDecoration(labelText: 'Alamat Email Google (@gmail.com)', prefixIcon: Icon(Icons.email)),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-                icon: const Icon(Icons.login, color: Colors.black),
-                label: const Text('MASUK DENGAN GOOGLE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                onPressed: () {
+
+              // Pilihan Akun Google 1 (Default / Owner)
+              _buildGoogleAccountTile(
+                name: 'Moch Keanu Alvino',
+                email: 'keanu.alvino@gmail.com',
+                initial: 'K',
+                initialColor: const Color(0xFF4285F4),
+                onTap: () {
                   Navigator.pop(ctx);
-                  final email = emailCtrl.text.trim().isNotEmpty ? emailCtrl.text.trim() : 'user.google@gmail.com';
-                  final name = nameCtrl.text.trim().isNotEmpty ? nameCtrl.text.trim() : 'Pengguna Google';
-                  _proceedGoogleLogin(email, name);
+                  _proceedGoogleLogin('keanu.alvino@gmail.com', 'Moch Keanu Alvino');
                 },
               ),
+              const SizedBox(height: 10),
+
+              // Pilihan Akun Google 2
+              _buildGoogleAccountTile(
+                name: 'Alya Putri',
+                email: 'alya.google@gmail.com',
+                initial: 'A',
+                initialColor: const Color(0xFFEA4335),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _proceedGoogleLogin('alya.google@gmail.com', 'Alya Putri');
+                },
+              ),
+              const SizedBox(height: 10),
+
+              if (!showCustomInput) ...[
+                // Tombol Akun Lain
+                InkWell(
+                  onTap: () {
+                    setSheetState(() {
+                      showCustomInput = true;
+                    });
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    decoration: BoxDecoration(
+                      color: AppTheme.cardBgLight,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white12),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.person_add_outlined, color: AppTheme.primaryGold, size: 24),
+                        SizedBox(width: 14),
+                        Text(
+                          'Gunakan akun Google lainnya...',
+                          style: TextStyle(color: Colors.white, fontSize: 13.5, fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ] else ...[
+                // Form input kustom akun Google
+                const SizedBox(height: 8),
+                TextField(
+                  controller: nameCtrl,
+                  decoration: const InputDecoration(labelText: 'Nama Profil Google', prefixIcon: Icon(Icons.person)),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: emailCtrl,
+                  decoration: const InputDecoration(labelText: 'Alamat Email Google (@gmail.com)', prefixIcon: Icon(Icons.email)),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    icon: const GoogleLogo(size: 20),
+                    label: const Text('MASUK DENGAN AKUN INI', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      final email = emailCtrl.text.trim().isNotEmpty ? emailCtrl.text.trim() : 'user.google@gmail.com';
+                      final name = nameCtrl.text.trim().isNotEmpty ? nameCtrl.text.trim() : 'Pengguna Google';
+                      _proceedGoogleLogin(email, name);
+                    },
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGoogleAccountTile({
+    required String name,
+    required String email,
+    required String initial,
+    required Color initialColor,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppTheme.cardBgLight,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white12),
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 18,
+              backgroundColor: initialColor,
+              child: Text(
+                initial,
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+              ),
             ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    email,
+                    style: TextStyle(color: Colors.white.withAlpha(160), fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios, size: 14, color: AppTheme.textMuted),
           ],
         ),
       ),

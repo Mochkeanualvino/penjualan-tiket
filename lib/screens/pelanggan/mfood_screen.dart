@@ -546,7 +546,7 @@ class _MFoodScreenState extends State<MFoodScreen> with SingleTickerProviderStat
 
                           Navigator.pop(ctx); // Close Bottom Sheet
 
-                          final result = await Navigator.push<MidtransPaymentStatus>(
+                          final result = await Navigator.push<dynamic>(
                             context,
                             MaterialPageRoute(
                               builder: (_) => MidtransSnapScreen(
@@ -560,7 +560,9 @@ class _MFoodScreenState extends State<MFoodScreen> with SingleTickerProviderStat
                             ),
                           );
 
-                          if (result == MidtransPaymentStatus.success && mounted) {
+                          final status = result is MidtransSnapResult ? result.status : (result as MidtransPaymentStatus?);
+
+                          if ((status == MidtransPaymentStatus.success || status == MidtransPaymentStatus.pending) && mounted) {
                             await foodProvider.createFoodOrder(
                               userId: currentUser?.id ?? 'user_1',
                               userEmail: currentUser?.email ?? 'pelanggan@bioskop.com',

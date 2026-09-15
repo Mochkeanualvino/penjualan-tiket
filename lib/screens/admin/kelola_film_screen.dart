@@ -20,6 +20,30 @@ class KelolaFilmScreen extends StatefulWidget {
 class _KelolaFilmScreenState extends State<KelolaFilmScreen> {
   int _selectedCategoryIndex = 0; // 0 = Sedang Tayang, 1 = Segera Tayang, 2 = Jadwal Coming Soon
 
+  Widget _buildPosterThumbnail(String posterUrl, {double width = 52, double height = 72}) {
+    final placeholder = Container(
+      color: AppTheme.cardBgLight,
+      child: const Center(
+        child: Icon(Icons.movie_outlined, size: 22, color: AppTheme.textMuted),
+      ),
+    );
+
+    return Container(
+      width: width,
+      height: height,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(6),
+        child: posterUrl.trim().isEmpty
+            ? placeholder
+            : Image.network(
+                posterUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (ctx, _, __) => placeholder,
+              ),
+      ),
+    );
+  }
+
   void _showFormDialog(BuildContext context, [FilmModel? film]) {
     final judulController = TextEditingController(text: film?.judul ?? '');
     final genreController = TextEditingController(text: film?.genre ?? '');
@@ -705,21 +729,7 @@ class _KelolaFilmScreenState extends State<KelolaFilmScreen> {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: Image.network(
-                          j.posterUrl,
-                          width: 30,
-                          height: 42,
-                          fit: BoxFit.cover,
-                          errorBuilder: (ctx, _, __) => Container(
-                            width: 30,
-                            height: 42,
-                            color: Colors.grey.shade800,
-                            child: const Icon(Icons.movie, size: 16, color: Colors.white54),
-                          ),
-                        ),
-                      ),
+                      _buildPosterThumbnail(j.posterUrl, width: 42, height: 58),
                       const SizedBox(width: 8),
                       Text(j.judulFilm, style: const TextStyle(fontWeight: FontWeight.bold)),
                     ],
@@ -882,23 +892,7 @@ class _KelolaFilmScreenState extends State<KelolaFilmScreen> {
                     rows: displayedFilms.map((film) {
                       return DataRow(
                         cells: [
-                          DataCell(
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(6),
-                              child: Image.network(
-                                film.posterUrl,
-                                width: 40,
-                                height: 55,
-                                fit: BoxFit.cover,
-                                errorBuilder: (ctx, _, __) => Container(
-                                  width: 40,
-                                  height: 55,
-                                  color: Colors.grey.shade800,
-                                  child: const Icon(Icons.movie, size: 20, color: Colors.white54),
-                                ),
-                              ),
-                            ),
-                          ),
+                          DataCell(_buildPosterThumbnail(film.posterUrl)),
                           DataCell(Text(film.judul, style: const TextStyle(fontWeight: FontWeight.bold))),
                           DataCell(Text(film.genre)),
                           DataCell(Text('${film.durasi} menit')),

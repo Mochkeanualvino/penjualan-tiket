@@ -35,6 +35,23 @@ class _RiwayatTransaksiScreenState extends State<RiwayatTransaksiScreen> with Si
     final bookingCode = 'XXI-${trx.id.hashCode.abs().toString().padLeft(7, '8').substring(0, 7)}';
     final qrImageUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=8&data=${Uri.encodeComponent("TICKET-PASS-$bookingCode-${trx.filmJudul}-${trx.daftarKursi.join(",")}")}';
 
+    final isSuccess = trx.status == 'Berhasil';
+    final isPending = trx.status == 'Menunggu Verifikasi' || trx.status == 'Pending';
+    final isRejected = trx.status == 'Ditolak';
+
+    Color statusBadgeColor = AppTheme.accentGreen;
+    String statusBadgeText = 'LUNAS';
+    if (isPending) {
+      statusBadgeColor = Colors.amber;
+      statusBadgeText = 'MENUNGGU VERIFIKASI';
+    } else if (isRejected) {
+      statusBadgeColor = AppTheme.accentRed;
+      statusBadgeText = 'DITOLAK';
+    } else if (trx.status == 'Dibatalkan') {
+      statusBadgeColor = AppTheme.accentRed;
+      statusBadgeText = 'DIBATALKAN';
+    }
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -67,9 +84,16 @@ class _RiwayatTransaksiScreenState extends State<RiwayatTransaksiScreen> with Si
                 decoration: BoxDecoration(
                   color: AppTheme.cardBg,
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: AppTheme.primaryGold, width: 1.5),
+                  border: Border.all(
+                    color: isPending ? Colors.amber : (isRejected ? AppTheme.accentRed : AppTheme.primaryGold),
+                    width: 1.5,
+                  ),
                   boxShadow: [
-                    BoxShadow(color: AppTheme.primaryGold.withAlpha(40), blurRadius: 16, offset: const Offset(0, 6)),
+                    BoxShadow(
+                      color: (isPending ? Colors.amber : AppTheme.primaryGold).withAlpha(40),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
                   ],
                 ),
                 child: Column(
@@ -87,44 +111,110 @@ class _RiwayatTransaksiScreenState extends State<RiwayatTransaksiScreen> with Si
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: AppTheme.accentGreen.withAlpha(40),
+                            color: statusBadgeColor.withAlpha(40),
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: AppTheme.accentGreen),
+                            border: Border.all(color: statusBadgeColor),
                           ),
-                          child: const Text('LUNAS', style: TextStyle(color: AppTheme.accentGreen, fontSize: 10, fontWeight: FontWeight.bold)),
+                          child: Text(
+                            statusBadgeText,
+                            style: TextStyle(color: statusBadgeColor, fontSize: 10, fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ],
                     ),
                     const Divider(color: Colors.white12, height: 24),
 
-                    // QR Code Scanner Frame
-                    Container(
-                      width: 170,
-                      height: 170,
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(6),
-                        child: Image.network(
-                          qrImageUrl,
-                          width: 150,
-                          height: 150,
-                          fit: BoxFit.contain,
-                          errorBuilder: (ctx, _, __) => const Center(
-                            child: Icon(Icons.qr_code_2, size: 120, color: Colors.black),
+                    if (isSuccess) ...[
+                      // QR Code Scanner Frame (Hanya tampil jika sudah Lunas)
+                      Container(
+                        width: 170,
+                        height: 170,
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: Image.network(
+                            qrImageUrl,
+                            width: 150,
+                            height: 150,
+                            fit: BoxFit.contain,
+                            errorBuilder: (ctx, _, __) => const Center(
+                              child: Icon(Icons.qr_code_2, size: 120, color: Colors.black),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'KODE BOOKING: $bookingCode',
-                      style: GoogleFonts.poppins(color: AppTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 15, letterSpacing: 1.5),
-                    ),
-                    const Text('Tunjukkan QR Code ini di scanner pintu bioskop XXI', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                      const SizedBox(height: 10),
+                      Text(
+                        'KODE BOOKING: $bookingCode',
+                        style: GoogleFonts.poppins(color: AppTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 15, letterSpacing: 1.5),
+                      ),
+                      const Text('Tunjukkan QR Code ini di scanner pintu bioskop XXI', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                    ] else if (isPending) ...[
+                      // Box Status Menunggu Verifikasi Admin
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.withAlpha(20),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.amber.withAlpha(100)),
+                        ),
+                        child: Column(
+                          children: [
+                            const Icon(Icons.hourglass_top_rounded, color: Colors.amber, size: 40),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Menunggu Konfirmasi Saldo Masuk',
+                              style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
+                            const SizedBox(height: 6),
+                            const Text(
+                              'Admin sedang memeriksa mutasi saldo masuk di nomor 085872254708 (KENTICKET CINEMA). Barcode tiket ini akan aktif otomatis setelah disetujui.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.white70, fontSize: 11, height: 1.3),
+                            ),
+                            if (trx.pembayaran?.nomorReferensi != null && trx.pembayaran!.nomorReferensi!.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              Text(
+                                'ID Referensi: ${trx.pembayaran!.nomorReferensi}',
+                                style: const TextStyle(color: AppTheme.primaryGold, fontSize: 11, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ] else ...[
+                      // Box Status Ditolak / Dibatalkan
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withAlpha(20),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.red.withAlpha(100)),
+                        ),
+                        child: Column(
+                          children: [
+                            const Icon(Icons.cancel_outlined, color: AppTheme.accentRed, size: 40),
+                            const SizedBox(height: 8),
+                            Text(
+                              isRejected ? 'Pembayaran Ditolak: Saldo Belum Masuk' : 'Transaksi Dibatalkan',
+                              style: const TextStyle(color: AppTheme.accentRed, fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
+                            const SizedBox(height: 6),
+                            const Text(
+                              'Admin memeriksa mutasi dan saldo belum diterima di rekening penerima. Silakan hubungi admin atau pesan ulang tiket.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.white70, fontSize: 11, height: 1.3),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
 
                     const Divider(color: Colors.white12, height: 24),
 
@@ -136,6 +226,8 @@ class _RiwayatTransaksiScreenState extends State<RiwayatTransaksiScreen> with Si
                     _buildTicketRow('Nomor Kursi', trx.daftarKursi.join(', '), isGold: true),
                     _buildTicketRow('Total Bayar', Formatters.currency(trx.totalHarga)),
                     _buildTicketRow('Metode Pembayaran', trx.pembayaran?.metode ?? 'Midtrans Snap'),
+                    if (trx.pembayaran?.nomorPengirim != null && trx.pembayaran!.nomorPengirim!.isNotEmpty)
+                      _buildTicketRow('Akun Pengirim', trx.pembayaran!.nomorPengirim!),
                   ],
                 ),
               ),
@@ -145,11 +237,17 @@ class _RiwayatTransaksiScreenState extends State<RiwayatTransaksiScreen> with Si
                 height: 48,
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryGold,
+                    backgroundColor: isSuccess ? AppTheme.primaryGold : const Color(0xFF1E293B),
+                    foregroundColor: isSuccess ? Colors.black : Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  icon: const Icon(Icons.qr_code_scanner, color: Colors.black),
-                  label: const Text('SCAN DI PINTU MASUK BIOSKOP', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                  icon: Icon(isSuccess ? Icons.qr_code_scanner : Icons.close, size: 18),
+                  label: Text(
+                    isSuccess
+                        ? 'SCAN DI PINTU MASUK BIOSKOP'
+                        : (isPending ? 'TUTUP (MENUNGGU KONFIRMASI ADMIN)' : 'TUTUP'),
+                    style: TextStyle(fontWeight: FontWeight.bold, color: isSuccess ? Colors.black : Colors.white),
+                  ),
                   onPressed: () => Navigator.pop(ctx),
                 ),
               ),
@@ -322,7 +420,21 @@ class _RiwayatTransaksiScreenState extends State<RiwayatTransaksiScreen> with Si
                   itemBuilder: (ctx, index) {
                     final trx = myTicketTransactions[index];
                     Color statusColor = AppTheme.accentGreen;
-                    if (trx.status == 'Dibatalkan') statusColor = AppTheme.accentRed;
+                    String displayStatus = 'Berhasil';
+
+                    if (trx.status == 'Menunggu Verifikasi' || trx.status == 'Pending') {
+                      statusColor = Colors.amber;
+                      displayStatus = 'Menunggu Verifikasi';
+                    } else if (trx.status == 'Ditolak') {
+                      statusColor = AppTheme.accentRed;
+                      displayStatus = 'Ditolak';
+                    } else if (trx.status == 'Dibatalkan') {
+                      statusColor = AppTheme.accentRed;
+                      displayStatus = 'Dibatalkan';
+                    } else {
+                      statusColor = AppTheme.accentGreen;
+                      displayStatus = 'Berhasil';
+                    }
 
                     return Card(
                       margin: const EdgeInsets.only(bottom: 16),
@@ -349,7 +461,7 @@ class _RiwayatTransaksiScreenState extends State<RiwayatTransaksiScreen> with Si
                                       border: Border.all(color: statusColor, width: 0.8),
                                     ),
                                     child: Text(
-                                      trx.status == 'Pending' ? 'Berhasil' : trx.status,
+                                      displayStatus,
                                       style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 11),
                                     ),
                                   ),
