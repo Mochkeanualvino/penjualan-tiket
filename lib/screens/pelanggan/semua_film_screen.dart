@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../providers/film_provider.dart';
 import '../../models/film_model.dart';
 import '../../utils/theme.dart';
 import 'detail_film_screen.dart';

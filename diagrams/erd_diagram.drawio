@@ -1,0 +1,72 @@
+<mxfile host="app.diagrams.net" modified="2026-09-01T08:00:00.000Z" agent="Antigravity" version="21.0.0" type="device">
+  <diagram id="erd_diagram" name="ERD Diagram">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="Entity Relationship Diagram (ERD) - Database Bioskop" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="380" y="20" width="440" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- USERS TABLE -->
+        <mxCell id="tbl_users" value="USERS&#xa;---------------------------------------&#xa;PK id : VARCHAR(255)&#xa;   name : VARCHAR(255)&#xa;   email : VARCHAR(255) [UK]&#xa;   password : VARCHAR(255)&#xa;   role : VARCHAR(50)&#xa;   created_at : TIMESTAMP&#xa;   updated_at : TIMESTAMP" style="shape=rect;whiteSpace=pre;html=1;align=left;spacingLeft=10;fillColor=#e7f5ff;strokeColor=#1971c2;fontFamily=Courier New;fontSize=12;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="100" width="240" height="150" as="geometry" />
+        </mxCell>
+
+        <!-- FILMS TABLE -->
+        <mxCell id="tbl_films" value="FILMS&#xa;---------------------------------------&#xa;PK id : VARCHAR(255)&#xa;   judul : VARCHAR(255)&#xa;   genre : VARCHAR(100)&#xa;   durasi : INTEGER&#xa;   rating_usia : VARCHAR(20)&#xa;   poster_url : TEXT&#xa;   is_segera_tayang : BOOLEAN&#xa;   created_at : TIMESTAMP&#xa;   updated_at : TIMESTAMP" style="shape=rect;whiteSpace=pre;html=1;align=left;spacingLeft=10;fillColor=#e6fcf5;strokeColor=#0ca678;fontFamily=Courier New;fontSize=12;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="440" width="240" height="180" as="geometry" />
+        </mxCell>
+
+        <!-- STUDIOS TABLE -->
+        <mxCell id="tbl_studios" value="STUDIOS&#xa;---------------------------------------&#xa;PK id : VARCHAR(255)&#xa;   nama : VARCHAR(100)&#xa;   kapasitas : INTEGER&#xa;   tipe_studio : VARCHAR(50)&#xa;   created_at : TIMESTAMP&#xa;   updated_at : TIMESTAMP" style="shape=rect;whiteSpace=pre;html=1;align=left;spacingLeft=10;fillColor=#fff9db;strokeColor=#f59f00;fontFamily=Courier New;fontSize=12;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="450" y="650" width="240" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- JADWALS TABLE -->
+        <mxCell id="tbl_jadwals" value="JADWALS&#xa;---------------------------------------&#xa;PK id : VARCHAR(255)&#xa;FK film_id : VARCHAR(255)&#xa;FK studio_id : VARCHAR(255)&#xa;   tanggal : VARCHAR(50)&#xa;   jam_tayang : VARCHAR(50)&#xa;   harga : DECIMAL(12,2)&#xa;   created_at : TIMESTAMP&#xa;   updated_at : TIMESTAMP" style="shape=rect;whiteSpace=pre;html=1;align=left;spacingLeft=10;fillColor=#fff4e6;strokeColor=#fd7e14;fontFamily=Courier New;fontSize=12;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="450" y="440" width="240" height="160" as="geometry" />
+        </mxCell>
+
+        <!-- TRANSAKSIS TABLE -->
+        <mxCell id="tbl_transaksis" value="TRANSAKSIS&#xa;---------------------------------------&#xa;PK id : VARCHAR(255)&#xa;FK user_id : VARCHAR(255)&#xa;FK jadwal_id : VARCHAR(255)&#xa;   kursi_list : JSON&#xa;   total_harga : DECIMAL(12,2)&#xa;   metode_pembayaran : VARCHAR&#xa;   status : VARCHAR(50)&#xa;   tanggal_transaksi : VARCHAR&#xa;   created_at : TIMESTAMP&#xa;   updated_at : TIMESTAMP" style="shape=rect;whiteSpace=pre;html=1;align=left;spacingLeft=10;fillColor=#ffe3e3;strokeColor=#fa5252;fontFamily=Courier New;fontSize=12;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="840" y="240" width="260" height="190" as="geometry" />
+        </mxCell>
+
+        <!-- AUTO_SAVE_DRAFTS TABLE -->
+        <mxCell id="tbl_drafts" value="AUTO_SAVE_DRAFTS&#xa;---------------------------------------&#xa;PK id : VARCHAR(255)&#xa;FK user_id : VARCHAR(255)&#xa;   form_key : VARCHAR(100)&#xa;   form_data : TEXT&#xa;   created_at : TIMESTAMP&#xa;   updated_at : TIMESTAMP" style="shape=rect;whiteSpace=pre;html=1;align=left;spacingLeft=10;fillColor=#f3f0ff;strokeColor=#7950f2;fontFamily=Courier New;fontSize=12;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="450" y="100" width="240" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- Relationships -->
+        <!-- User to Transaksi (1:N) -->
+        <mxCell id="rel_u_trx" value="1 : N&#xa;melakukan" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;entryX=0;entryY=0.25;strokeColor=#fa5252;strokeWidth=2;endArrow=ERmany;startArrow=ERone;" edge="1" source="tbl_users" target="tbl_transaksis" parent="1">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="780" y="175" /><mxPoint x="780" y="288" /></Array></mxGeometry>
+        </mxCell>
+
+        <!-- User to Drafts (1:N) -->
+        <mxCell id="rel_u_drafts" value="1 : N&#xa;memiliki" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;entryX=0;entryY=0.5;strokeColor=#7950f2;strokeWidth=2;endArrow=ERmany;startArrow=ERone;" edge="1" source="tbl_users" target="tbl_drafts" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Film to Jadwals (1:N) -->
+        <mxCell id="rel_f_jadwal" value="1 : N&#xa;ditayangkan" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;entryX=0;entryY=0.5;strokeColor=#0ca678;strokeWidth=2;endArrow=ERmany;startArrow=ERone;" edge="1" source="tbl_films" target="tbl_jadwals" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Studio to Jadwals (1:N) -->
+        <mxCell id="rel_s_jadwal" value="1 : N&#xa;digunakan" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;entryX=0.5;entryY=1;strokeColor=#f59f00;strokeWidth=2;endArrow=ERmany;startArrow=ERone;" edge="1" source="tbl_studios" target="tbl_jadwals" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Jadwal to Transaksi (1:N) -->
+        <mxCell id="rel_j_trx" value="1 : N&#xa;dipesan" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;entryX=0;entryY=0.75;strokeColor=#fd7e14;strokeWidth=2;endArrow=ERmany;startArrow=ERone;" edge="1" source="tbl_jadwals" target="tbl_transaksis" parent="1">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="780" y="520" /><mxPoint x="780" y="383" /></Array></mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,56 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../models/promo_model.dart';
 import '../../utils/theme.dart';
+import '../../utils/formatters.dart';
 
 class PromoScreen extends StatelessWidget {
   const PromoScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final promos = [
-      {
-        'title': 'TUESDATE PROMO',
-        'desc': 'Diskon 50% untuk tiket kedua setiap hari Selasa! Ajak pasangan atau sahabatmu nonton bareng.',
-        'badge': 'Setiap Selasa',
-        'icon': Icons.local_offer,
-        'color': AppTheme.primaryGold,
-      },
-      {
-        'title': 'MIDNIGHT MADNESS',
-        'desc': 'Nonton film horor tengah malam hanya Rp25.000! Berlaku setiap Jumat & Sabtu.',
-        'badge': 'Weekend Only',
-        'icon': Icons.nightlight_round,
-        'color': Colors.purpleAccent,
-      },
-      {
-        'title': 'STUDENT DEAL',
-        'desc': 'Tunjukkan kartu pelajar/mahasiswa dan dapatkan diskon 30% tiket Regular 2D!',
-        'badge': 'Weekday',
-        'icon': Icons.school,
-        'color': AppTheme.accentBlue,
-      },
-      {
-        'title': 'BCA CARD PROMO',
-        'desc': 'Buy 1 Get 1 Free untuk pemegang kartu BCA. Berlaku di semua Cinema XXI.',
-        'badge': 'Limited',
-        'icon': Icons.credit_card,
-        'color': AppTheme.accentGreen,
-      },
-      {
-        'title': 'M.TIX POINTS DOUBLE',
-        'desc': 'Dapatkan poin 2x lipat setiap transaksi melalui m.tix! Tukarkan poin dengan hadiah menarik.',
-        'badge': 'Juli 2026',
-        'icon': Icons.card_giftcard,
-        'color': Colors.orangeAccent,
-      },
-      {
-        'title': 'PREMIERE NIGHT',
-        'desc': 'Nonton perdana film blockbuster di Studio IMAX, lengkap dengan snack box eksklusif.',
-        'badge': 'Pre-order',
-        'icon': Icons.star,
-        'color': Colors.amberAccent,
-      },
-    ];
+    final promos = PromoService.availablePromos;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -58,12 +18,12 @@ class PromoScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Promo & Penawaran',
+            'Promo & Voucher XXI',
             style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.primaryGold),
           ),
           const SizedBox(height: 6),
           const Text(
-            'Jangan lewatkan promo terbaik dari Cinema XXI!',
+            'Gunakan kode promo saat pembayaran tiket atau makanan m.food!',
             style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
           ),
           const SizedBox(height: 20),
@@ -72,51 +32,97 @@ class PromoScreen extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 16),
               child: Padding(
                 padding: const EdgeInsets.all(18),
-                child: Row(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: (promo['color'] as Color).withAlpha(30),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Icon(promo['icon'] as IconData, color: promo['color'] as Color, size: 28),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryGold.withAlpha(30),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Icon(Icons.local_offer, color: AppTheme.primaryGold, size: 28),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(
-                                child: Text(
-                                  promo['title'] as String,
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white),
-                                ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      promo.title,
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white),
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.primaryGold.withAlpha(30),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: AppTheme.primaryGold.withAlpha(80)),
+                                    ),
+                                    child: Text(
+                                      promo.badge,
+                                      style: const TextStyle(color: AppTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.primaryGold.withAlpha(30),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: AppTheme.primaryGold.withAlpha(80)),
-                                ),
-                                child: Text(
-                                  promo['badge'] as String,
-                                  style: const TextStyle(color: AppTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold),
-                                ),
+                              const SizedBox(height: 6),
+                              Text(
+                                promo.description,
+                                style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
                               ),
+                              if (promo.minPurchase > 0) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Min. Pembelian: ${Formatters.currency(promo.minPurchase)}',
+                                  style: const TextStyle(color: AppTheme.primaryGold, fontSize: 11, fontWeight: FontWeight.bold),
+                                ),
+                              ],
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            promo['desc'] as String,
-                            style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                    const Divider(color: Colors.white10, height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.black38,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppTheme.primaryGold.withAlpha(100)),
                           ),
-                        ],
-                      ),
+                          child: Text(
+                            'KODE: ${promo.code}',
+                            style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.primaryGold, letterSpacing: 1),
+                          ),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            Clipboard.setData(ClipboardData(text: promo.code));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('📋 Kode Promo "${promo.code}" disalin! Tempelkan di halaman pembayaran.'),
+                                backgroundColor: AppTheme.accentGreen,
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.copy, size: 16, color: AppTheme.primaryGold),
+                          label: const Text('SALIN KODE', style: TextStyle(color: AppTheme.primaryGold, fontSize: 12, fontWeight: FontWeight.bold)),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: AppTheme.primaryGold),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

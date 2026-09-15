@@ -15,6 +15,15 @@ class AuthProvider extends ChangeNotifier {
 
   /// Muat sesi pengguna yang tersimpan dari penyimpanan lokal
   void _loadSession() {
+    // Sync registered users from local storage to memory db
+    final storedUsers = LocalStorageService.loadList(LocalStorageService.keyUsers);
+    for (final map in storedUsers) {
+      if (map['id'] != null) {
+        final u = UserModel.fromMap(map, map['id']);
+        _db.saveUser(u);
+      }
+    }
+
     final savedUser = LocalStorageService.loadMap(LocalStorageService.keyCurrentUser);
     if (savedUser != null) {
       _currentUser = UserModel.fromMap(savedUser, savedUser['id'] ?? '');
@@ -41,6 +50,22 @@ class AuthProvider extends ChangeNotifier {
   /// Hapus sesi pengguna dari penyimpanan lokal
   Future<void> _clearSession() async {
     await LocalStorageService.remove(LocalStorageService.keyCurrentUser);
+  }
+
+  Future<void> _persistUsers() async {
+    final List<Map<String, dynamic>> userList = [];
+    final adminUser = _db.getUserByEmail('admin@bioskop.com');
+    if (adminUser != null) {
+      userList.add({'id': adminUser.id, ...adminUser.toMap()});
+    }
+    final sampleUser = _db.getUserByEmail('pelanggan@bioskop.com');
+    if (sampleUser != null) {
+      userList.add({'id': sampleUser.id, ...sampleUser.toMap()});
+    }
+    if (_currentUser != null) {
+      userList.add({'id': _currentUser!.id, ..._currentUser!.toMap()});
+    }
+    await LocalStorageService.saveList(LocalStorageService.keyUsers, userList);
   }
 
   UserModel? get currentUser => _currentUser;
@@ -201,15 +226,33 @@ class AuthProvider extends ChangeNotifier {
     UserModel? user = _db.getUserByEmail(email);
 
     if (user == null) {
-      String role = 'Pelanggan';
-      if (email.toLowerCase().contains('admin')) {
-        role = 'Admin';
-      }
+      _isLoading = false;
+      notifyListeners();
+      return false; // Rejection: Account not registered
+    }
+
+    _currentUser = user;
+    _selectedCity = user.selectedCity;
+    _isLoading = false;
+    notifyListeners();
+    _saveSession();
+    return true;
+  }
+
+  Future<bool> loginWithGoogle({required String email, required String name}) async {
+    _isLoading = true;
+    notifyListeners();
+
+    await Future.delayed(const Duration(milliseconds: 600));
+
+    UserModel? user = _db.getUserByEmail(email);
+
+    if (user == null) {
       user = UserModel(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         email: email,
-        name: email.split('@').first,
-        role: role,
+        name: name,
+        role: 'Pelanggan',
         selectedCity: _selectedCity,
       );
       _db.saveUser(user);
@@ -220,6 +263,7 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
     _saveSession();
+    _persistUsers();
     return true;
   }
 
@@ -249,10 +293,10 @@ class AuthProvider extends ChangeNotifier {
     );
 
     _db.saveUser(user);
-    _currentUser = user;
+    // Pengguna diarahkan ke login screen untuk login ulang
     _isLoading = false;
     notifyListeners();
-    _saveSession();
+    await _persistUsers();
     return true;
   }
 

@@ -36,7 +36,7 @@ class KelolaMakananScreen extends StatelessWidget {
 
     AutoSaveStatus currentStatus = AutoSaveStatus.idle;
 
-    void triggerAutoSave(VoidCallback setStateDialog) {
+    void triggerAutoSave(StateSetter setStateDialog) {
       AutoSaveService.onInputChanged(
         formKey: draftKey,
         data: {
@@ -172,11 +172,13 @@ class KelolaMakananScreen extends StatelessWidget {
                   if (formKey.currentState!.validate()) {
                     final foodProvider = Provider.of<FoodProvider>(context, listen: false);
                     final nama = namaController.text.trim();
-                    final harga = double.parse(hargaController.text.trim());
+                    final hargaClean = hargaController.text.replaceAll(RegExp(r'[^0-9.]'), '');
+                    final harga = double.tryParse(hargaClean) ?? 0.0;
                     final kategori = kategoriController.text.trim();
                     final img = imageController.text.trim();
                     final diskonHari = diskonHariController.text.trim();
-                    final diskonPersen = int.tryParse(diskonPersenController.text.trim()) ?? 0;
+                    final diskonClean = diskonPersenController.text.replaceAll(RegExp(r'[^0-9]'), '');
+                    final diskonPersen = int.tryParse(diskonClean) ?? 0;
 
                     if (food == null) {
                       await foodProvider.addFood(
@@ -260,7 +262,7 @@ class KelolaMakananScreen extends StatelessWidget {
                 ),
                 ElevatedButton.icon(
                   onPressed: () => _showFormDialog(context),
-                  icon: const Icon(Icons.add_shopping_bag),
+                  icon: const Icon(Icons.shopping_bag),
                   label: const Text('Tambah Menu'),
                 ),
               ],

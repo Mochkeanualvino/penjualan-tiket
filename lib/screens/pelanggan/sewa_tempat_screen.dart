@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:provider/provider.dart';
 import '../../utils/theme.dart';
 import '../../utils/formatters.dart';
+import '../../services/local_storage_service.dart';
+import '../../providers/auth_provider.dart';
+import 'notifikasi_screen.dart';
 
 class SewaTempatScreen extends StatefulWidget {
   const SewaTempatScreen({super.key});
@@ -18,6 +22,7 @@ class _SewaTempatScreenState extends State<SewaTempatScreen> {
   final _descController = TextEditingController();
   String _tipeAcara = 'Ulang Tahun';
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 7));
+  static const String adminWhatsAppNumber = '6285872254708'; // Nomor WhatsApp Admin XXI (085872254708)
 
   @override
   void dispose() {
@@ -27,50 +32,48 @@ class _SewaTempatScreenState extends State<SewaTempatScreen> {
     super.dispose();
   }
 
-  Future<void> _submitAndOpenWhatsApp() async {
+  Future<void> _submitRequest() async {
     if (_formKey.currentState!.validate()) {
       final nama = _nameController.text.trim();
-      String phone = _phoneController.text.trim().replaceAll(RegExp(r'[^0-9]'), '');
-      if (phone.startsWith('0')) {
-        phone = '62${phone.substring(1)}';
-      }
-
+      final phone = _phoneController.text.trim();
       final tanggalStr = Formatters.formatShortDate(_selectedDate);
       final desc = _descController.text.trim();
 
-      final message = 'Halo Admin XXI Bioskop! 👋\n\n'
-          'Saya mengajukan permohonan Sewa Tempat / Studio XXI:\n'
-          '👤 Nama: $nama\n'
-          '📱 No. WA: ${_phoneController.text.trim()}\n'
-          '🎉 Tipe Event: $_tipeAcara\n'
-          '📅 Tanggal Rencana: $tanggalStr\n'
-          '📝 Catatan: ${desc.isNotEmpty ? desc : "-"}\n\n'
-          'Mohon konfirmasi jadwal sewa studio 1x24 jam. Terima kasih!';
+      // 1. Simpan permohonan ke local storage
+      final existing = LocalStorageService.loadList('app_sewa_tempat');
+      existing.add({
+        'id': 'sewa_${DateTime.now().millisecondsSinceEpoch}',
+        'nama': nama,
+        'phone': phone,
+        'tipeAcara': _tipeAcara,
+        'tanggal': _selectedDate.toIso8601String(),
+        'catatan': desc,
+        'status': 'Menunggu Konfirmasi Admin',
+        'createdAt': DateTime.now().toIso8601String(),
+      });
+      await LocalStorageService.saveList('app_sewa_tempat', existing);
 
-      final encodedMessage = Uri.encodeComponent(message);
-      final waUrl = 'https://wa.me/$phone?text=$encodedMessage';
-      final fallbackUrl = 'https://api.whatsapp.com/send?phone=$phone&text=$encodedMessage';
+      // 2. Kirim notifikasi sistem
+      final currentUserId = Provider.of<AuthProvider>(context, listen: false).currentUser?.id ?? 'all';
+      NotificationService().addNotification(
+        userId: currentUserId,
+        title: '🏢 Permohonan Sewa Tempat Terkirim!',
+        message: 'Permohonan sewa studio untuk "$_tipeAcara" pada $tanggalStr telah diterima Admin XXI.',
+        icon: Icons.store_mall_directory,
+        color: AppTheme.primaryGold,
+      );
 
-      try {
-        final uri = Uri.parse(waUrl);
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
-        } else {
-          await launchUrl(Uri.parse(fallbackUrl), mode: LaunchMode.externalApplication);
-        }
-      } catch (e) {
-        debugPrint('Error launch WhatsApp: $e');
-      }
-
+      // 3. Tampilkan dialog sukses
       if (mounted) {
         showDialog(
           context: context,
+          barrierDismissible: false,
           builder: (ctx) => AlertDialog(
             title: Row(
               children: const [
                 Icon(Icons.check_circle, color: AppTheme.accentGreen, size: 28),
                 SizedBox(width: 10),
-                Text('Persetujuan Berhasil!'),
+                Text('Permohonan Terkirim!'),
               ],
             ),
             content: Column(
@@ -78,7 +81,7 @@ class _SewaTempatScreenState extends State<SewaTempatScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Terima kasih, $nama! Permohonan sewa tempat XXI Anda telah tercatat.',
+                  'Terima kasih, $nama! Permohonan sewa tempat XXI Anda telah tercatat di sistem.',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
@@ -95,16 +98,37 @@ class _SewaTempatScreenState extends State<SewaTempatScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'Pesan WA berhasil dikirim ke ${_phoneController.text.trim()}.\nTim XXI Marketing akan mengonfirmasi permintaan Anda dalam 1x24 jam.',
+                          'Admin XXI akan segera menghubungi nomor WhatsApp Anda ($phone) dalam 1x24 jam untuk konfirmasi jadwal dan ketersediaan studio.',
                           style: const TextStyle(fontSize: 12, color: AppTheme.accentGreen),
                         ),
                       ),
                     ],
                   ),
                 ),
+                const SizedBox(height: 14),
+                const Text('Atau Anda juga dapat langsung menghubungi Customer Service XXI (085872254708):', style: TextStyle(color: AppTheme.textMuted, fontSize: 11)),
               ],
             ),
             actions: [
+              OutlinedButton.icon(
+                icon: const Icon(Icons.chat, color: AppTheme.accentGreen, size: 16),
+                label: const Text('Hubungi CS Admin via WA', style: TextStyle(color: AppTheme.accentGreen)),
+                onPressed: () async {
+                  final msg = Uri.encodeComponent(
+                    'Halo Admin XXI Bioskop (085872254708)! 👋\n\n'
+                    'Saya ($nama) baru saja mengajukan permohonan Sewa Tempat:\n'
+                    '🎉 Event: $_tipeAcara\n'
+                    '📅 Tanggal: $tanggalStr\n'
+                    '📱 No. WA Saya: $phone\n'
+                    '📝 Catatan: ${desc.isNotEmpty ? desc : "-"}\n\n'
+                    'Mohon informasi lebih lanjut. Terima kasih!',
+                  );
+                  final waUrl = 'https://wa.me/$adminWhatsAppNumber?text=$msg';
+                  try {
+                    await launchUrl(Uri.parse(waUrl), mode: LaunchMode.externalApplication);
+                  } catch (_) {}
+                },
+              ),
               ElevatedButton(
                 onPressed: () {
                   _nameController.clear();
@@ -113,7 +137,7 @@ class _SewaTempatScreenState extends State<SewaTempatScreen> {
                   Navigator.pop(ctx);
                   Navigator.pop(context);
                 },
-                child: const Text('OK'),
+                child: const Text('SELESAI'),
               ),
             ],
           ),
@@ -155,7 +179,7 @@ class _SewaTempatScreenState extends State<SewaTempatScreen> {
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
                 decoration: const InputDecoration(
-                  labelText: 'Nomor Telepon / WhatsApp',
+                  labelText: 'Nomor Telepon / WhatsApp Anda',
                   hintText: 'e.g. 08123456789',
                   prefixIcon: Icon(Icons.phone_android, color: AppTheme.primaryGold),
                 ),
@@ -203,9 +227,13 @@ class _SewaTempatScreenState extends State<SewaTempatScreen> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton.icon(
-                  icon: const Icon(Icons.send_rounded),
-                  label: const Text('KIRIM PENGAJUAN & BUKA WA'),
-                  onPressed: _submitAndOpenWhatsApp,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryGold,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  icon: const Icon(Icons.send_rounded, color: Colors.black),
+                  label: const Text('KIRIM PENGAJUAN SEWA KE ADMIN', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                  onPressed: _submitRequest,
                 ),
               ),
             ],

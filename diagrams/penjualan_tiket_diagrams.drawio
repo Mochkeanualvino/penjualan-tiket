@@ -1,0 +1,315 @@
+<mxfile host="app.diagrams.net" modified="2026-09-01T08:00:00.000Z" agent="Antigravity" version="21.0.0" type="device">
+  <!-- PAGE 1: USE CASE DIAGRAM -->
+  <diagram id="page_use_case" name="1. Use Case Diagram">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <mxCell id="sys_box" value="Sistem Penjualan Tiket Bioskop" style="shape=rect;html=1;whiteSpace=wrap;align=center;verticalAlign=top;fontStyle=1;fontSize=16;fillColor=#f8f9fa;strokeColor=#495057;strokeWidth=2;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="220" y="40" width="580" height="740" as="geometry" />
+        </mxCell>
+
+        <mxCell id="actor_pelanggan" value="Pelanggan" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#d0ebff;strokeColor=#1971c2;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="60" y="260" width="50" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="actor_admin" value="Admin" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#ffe3e3;strokeColor=#e03131;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="880" y="260" width="50" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_auth" value="Registrasi &amp; Login" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e7f5ff;strokeColor=#1c7ed6;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="410" y="80" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_browse" value="Lihat Daftar &amp; Cari Film" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e7f5ff;strokeColor=#1c7ed6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="260" y="150" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_detail" value="Lihat Detail Film &amp; Jadwal" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e7f5ff;strokeColor=#1c7ed6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="260" y="220" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_kursi" value="Pilih Kursi Bioskop" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e7f5ff;strokeColor=#1c7ed6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="260" y="290" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_mfood" value="Pesan Makanan (M-Food)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e7f5ff;strokeColor=#1c7ed6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="260" y="360" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_promo" value="Klaim Promo &amp; Voucher" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e7f5ff;strokeColor=#1c7ed6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="260" y="430" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_bayar" value="Melakukan Pembayaran Tiket" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e7f5ff;strokeColor=#1c7ed6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="260" y="500" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_riwayat" value="Lihat Riwayat &amp; E-Ticket" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e7f5ff;strokeColor=#1c7ed6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="260" y="570" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_adm_film" value="Kelola Data Film (CRUD)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff5f5;strokeColor=#fa5252;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="560" y="150" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_adm_studio" value="Kelola Data Studio (CRUD)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff5f5;strokeColor=#fa5252;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="560" y="220" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_adm_jadwal" value="Kelola Jadwal Tayang (CRUD)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff5f5;strokeColor=#fa5252;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="560" y="290" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_adm_kursi" value="Kelola Denah &amp; Status Kursi" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff5f5;strokeColor=#fa5252;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="560" y="360" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_adm_makanan" value="Kelola Menu Makanan M-Food" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff5f5;strokeColor=#fa5252;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="560" y="430" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_adm_transaksi" value="Monitoring &amp; Status Transaksi" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff5f5;strokeColor=#fa5252;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="560" y="500" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_autosave" value="Auto-Save Real-time Drafts" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f3f0ff;strokeColor=#7950f2;fontSize=12;fontStyle=2;" vertex="1" parent="1">
+          <mxGeometry x="410" y="650" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Connections -->
+        <mxCell id="e_p_auth" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;strokeColor=#1971c2;strokeWidth=1.5;" edge="1" source="actor_pelanggan" target="uc_auth" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_p_browse" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;strokeColor=#1971c2;strokeWidth=1.5;" edge="1" source="actor_pelanggan" target="uc_browse" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_p_detail" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;strokeColor=#1971c2;strokeWidth=1.5;" edge="1" source="actor_pelanggan" target="uc_detail" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_p_kursi" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;strokeColor=#1971c2;strokeWidth=1.5;" edge="1" source="actor_pelanggan" target="uc_kursi" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_p_mfood" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;strokeColor=#1971c2;strokeWidth=1.5;" edge="1" source="actor_pelanggan" target="uc_mfood" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_p_promo" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;strokeColor=#1971c2;strokeWidth=1.5;" edge="1" source="actor_pelanggan" target="uc_promo" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_p_bayar" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;strokeColor=#1971c2;strokeWidth=1.5;" edge="1" source="actor_pelanggan" target="uc_bayar" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_p_riwayat" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;strokeColor=#1971c2;strokeWidth=1.5;" edge="1" source="actor_pelanggan" target="uc_riwayat" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e_a_auth" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;strokeColor=#e03131;strokeWidth=1.5;" edge="1" source="actor_admin" target="uc_auth" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_a_film" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;strokeColor=#e03131;strokeWidth=1.5;" edge="1" source="actor_admin" target="uc_adm_film" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_a_studio" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;strokeColor=#e03131;strokeWidth=1.5;" edge="1" source="actor_admin" target="uc_adm_studio" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_a_jadwal" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;strokeColor=#e03131;strokeWidth=1.5;" edge="1" source="actor_admin" target="uc_adm_jadwal" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_a_kursi" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;strokeColor=#e03131;strokeWidth=1.5;" edge="1" source="actor_admin" target="uc_adm_kursi" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_a_makanan" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;strokeColor=#e03131;strokeWidth=1.5;" edge="1" source="actor_admin" target="uc_adm_makanan" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_a_transaksi" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;strokeColor=#e03131;strokeWidth=1.5;" edge="1" source="actor_admin" target="uc_adm_transaksi" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="inc_1" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="html=1;verticalAlign=bottom;labelBackgroundColor=none;endArrow=open;endFill=0;dashed=1;strokeColor=#495057;" edge="1" source="uc_bayar" target="uc_kursi" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="inc_2" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="html=1;verticalAlign=bottom;labelBackgroundColor=none;endArrow=open;endFill=0;dashed=1;strokeColor=#495057;" edge="1" source="uc_adm_film" target="uc_autosave" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <!-- PAGE 2: ACTIVITY DIAGRAM -->
+  <diagram id="page_activity" name="2. Activity Diagram">
+    <mxGraphModel dx="1200" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="900" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="pool" value="Alur Pemesanan Tiket Bioskop" style="swimlane;html=1;childLayout=stackLayout;resizeParent=1;resizeParentMax=0;startSize=30;horizontal=1;horizontalChildControl=0;fontStyle=1;fontSize=14;fillColor=#f1f3f5;strokeColor=#495057;" vertex="1" parent="1">
+          <mxGeometry x="40" y="30" width="1080" height="820" as="geometry" />
+        </mxCell>
+
+        <mxCell id="lane_user" value="Pelanggan (User)" style="swimlane;html=1;startSize=30;fontSize=12;fontStyle=1;fillColor=#e7f5ff;strokeColor=#339af0;" vertex="1" parent="pool">
+          <mxGeometry y="30" width="360" height="790" as="geometry" />
+        </mxCell>
+
+        <mxCell id="lane_flutter" value="Frontend (Flutter App &amp; Provider)" style="swimlane;html=1;startSize=30;fontSize=12;fontStyle=1;fillColor=#e6fcf5;strokeColor=#20c997;" vertex="1" parent="pool">
+          <mxGeometry x="360" y="30" width="360" height="790" as="geometry" />
+        </mxCell>
+
+        <mxCell id="lane_backend" value="Backend (Laravel API &amp; Database)" style="swimlane;html=1;startSize=30;fontSize=12;fontStyle=1;fillColor=#fff4e6;strokeColor=#fd7e14;" vertex="1" parent="pool">
+          <mxGeometry x="720" y="30" width="360" height="790" as="geometry" />
+        </mxCell>
+
+        <mxCell id="start_node" value="" style="ellipse;fillColor=#212529;strokeColor=#000000;" vertex="1" parent="lane_user">
+          <mxGeometry x="165" y="45" width="30" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="u_open" value="Buka Aplikasi &amp; Pilih Film" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1971c2;" vertex="1" parent="lane_user">
+          <mxGeometry x="100" y="110" width="160" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="u_pilih_kursi" value="Pilih Jadwal &amp; Kursi Bioskop" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1971c2;" vertex="1" parent="lane_user">
+          <mxGeometry x="100" y="270" width="160" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="u_mfood_promo" value="Tambah M-Food / Gunakan Voucher (Opsional)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1971c2;" vertex="1" parent="lane_user">
+          <mxGeometry x="90" y="350" width="180" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="u_pay_action" value="Pilih Metode Pembayaran &amp; Konfirmasi Checkout" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1971c2;" vertex="1" parent="lane_user">
+          <mxGeometry x="90" y="440" width="180" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="u_see_ticket" value="Melihat Bukti E-Ticket &amp; QR Code" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1971c2;" vertex="1" parent="lane_user">
+          <mxGeometry x="100" y="690" width="160" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="end_node" value="" style="ellipse;shape=endState;fillColor=#212529;strokeColor=#000000;" vertex="1" parent="lane_user">
+          <mxGeometry x="165" y="755" width="30" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="f_load_film" value="Fetch Daftar Film via ApiService" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#0ca678;" vertex="1" parent="lane_flutter">
+          <mxGeometry x="100" y="110" width="160" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="f_show_seats" value="Render Visual Denah Kursi &amp; Cek Status Kursi Terisi" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#0ca678;" vertex="1" parent="lane_flutter">
+          <mxGeometry x="90" y="270" width="180" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="f_calc" value="Kalkulasi Total Harga Tiket + M-Food - Diskon" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#0ca678;" vertex="1" parent="lane_flutter">
+          <mxGeometry x="90" y="350" width="180" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="f_send_trx" value="Kirim Request Transaksi ke REST API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#0ca678;" vertex="1" parent="lane_flutter">
+          <mxGeometry x="100" y="440" width="160" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="f_render_ticket" value="Terima Response &amp; Render Layar E-Ticket" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#0ca678;" vertex="1" parent="lane_flutter">
+          <mxGeometry x="90" y="690" width="180" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="b_query_film" value="Query Data Film &amp; Jadwal dari DB" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#e8590c;" vertex="1" parent="lane_backend">
+          <mxGeometry x="100" y="110" width="160" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="b_validate_seat" value="Validasi Ketersediaan Kursi (Anti Double-Booking)" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff9db;strokeColor=#f59f00;" vertex="1" parent="lane_backend">
+          <mxGeometry x="85" y="520" width="190" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="b_save_trx" value="Simpan Record Transaksi &amp; Ubah Status Jadi Lunas" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#e8590c;" vertex="1" parent="lane_backend">
+          <mxGeometry x="95" y="615" width="170" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" source="start_node" target="u_open" parent="pool"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" source="u_open" target="f_load_film" parent="pool"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" source="f_load_film" target="b_query_film" parent="pool"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" source="b_query_film" target="f_show_seats" parent="pool"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="900" y="200" /><mxPoint x="540" y="200" /></Array></mxGeometry></mxCell>
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" source="f_show_seats" target="u_pilih_kursi" parent="pool"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" source="u_pilih_kursi" target="u_mfood_promo" parent="pool"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" source="u_mfood_promo" target="f_calc" parent="pool"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" source="f_calc" target="u_pay_action" parent="pool"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="540" y="420" /><mxPoint x="180" y="420" /></Array></mxGeometry></mxCell>
+        <mxCell id="e9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" source="u_pay_action" target="f_send_trx" parent="pool"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" source="f_send_trx" target="b_validate_seat" parent="pool"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="540" y="555" /></Array></mxGeometry></mxCell>
+        
+        <mxCell id="e11_ok" value="[Tersedia]" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" source="b_validate_seat" target="b_save_trx" parent="pool"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e11_fail" value="[Sudah Terisi]" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;entryX=1;entryY=0.5;" edge="1" source="b_validate_seat" target="f_show_seats" parent="pool"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1020" y="555" /><mxPoint x="1020" y="320" /></Array></mxGeometry></mxCell>
+        
+        <mxCell id="e12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" source="b_save_trx" target="f_render_ticket" parent="pool"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="900" y="730" /></Array></mxGeometry></mxCell>
+        <mxCell id="e13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" source="f_render_ticket" target="u_see_ticket" parent="pool"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" source="u_see_ticket" target="end_node" parent="pool"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <!-- PAGE 3: SEQUENCE DIAGRAM -->
+  <diagram id="page_sequence" name="3. Sequence Diagram">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="Sequence Diagram: Alur Pemesanan &amp; Pembayaran Tiket Bioskop" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="320" y="20" width="530" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ll_user" value="Pelanggan" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#d0ebff;strokeColor=#1971c2;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="80" width="100" height="600" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_ui" value="Flutter UI&#xa;(PilihKursiScreen)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#d3f9d8;strokeColor=#2b8a3e;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="230" y="80" width="130" height="600" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_prov" value="TransaksiProvider&#xa;(State Management)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#fff3bf;strokeColor=#e67700;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="80" width="140" height="600" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_api" value="ApiService&#xa;(HTTP Client)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#ffe8cc;strokeColor=#d9480f;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="620" y="80" width="120" height="600" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_ctrl" value="TransaksiController&#xa;(Laravel API)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#ffe3e3;strokeColor=#c92a2a;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="800" y="80" width="140" height="600" as="geometry" />
+        </mxCell>
+        <mxCell id="ll_db" value="Database&#xa;(SQLite / MySQL)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#f3f0ff;strokeColor=#5f3dc4;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="80" width="120" height="600" as="geometry" />
+        </mxCell>
+
+        <mxCell id="msg1" value="1. Pilih Kursi [A1, A2] &amp; Klik Pesan" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1" source="ll_user" target="ll_ui"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="200" y="160" /></Array></mxGeometry></mxCell>
+        <mxCell id="msg2" value="2. setSelectedKursi(['A1','A2'])" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1" source="ll_ui" target="ll_prov"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="390" y="190" /></Array></mxGeometry></mxCell>
+        <mxCell id="msg3" value="3. Input Metode Bayar &amp; Submit" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1" source="ll_user" target="ll_ui"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="200" y="240" /></Array></mxGeometry></mxCell>
+        <mxCell id="msg4" value="4. submitTransaksi(trxData)" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1" source="ll_ui" target="ll_prov"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="390" y="270" /></Array></mxGeometry></mxCell>
+        <mxCell id="msg5" value="5. post('/api/v1/transaksi', payload)" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1" source="ll_prov" target="ll_api"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="580" y="300" /></Array></mxGeometry></mxCell>
+        <mxCell id="msg6" value="6. HTTP POST + Bearer Token" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1" source="ll_api" target="ll_ctrl"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="770" y="330" /></Array></mxGeometry></mxCell>
+        <mxCell id="msg7" value="7. Validasi ketersediaan kursi" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1" source="ll_ctrl" target="ll_db"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="960" y="370" /></Array></mxGeometry></mxCell>
+        <mxCell id="msg8" value="8. Return kursi tersedia (OK)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endFill=0;rounded=0;" edge="1" parent="1" source="ll_db" target="ll_ctrl"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="960" y="400" /></Array></mxGeometry></mxCell>
+        <mxCell id="msg9" value="9. INSERT INTO transaksis (id, user_id, kursi_list, total, status)" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1" source="ll_ctrl" target="ll_db"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="960" y="440" /></Array></mxGeometry></mxCell>
+        <mxCell id="msg10" value="10. Transaksi tersimpan (Success)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endFill=0;rounded=0;" edge="1" parent="1" source="ll_db" target="ll_ctrl"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="960" y="470" /></Array></mxGeometry></mxCell>
+        <mxCell id="msg11" value="11. 201 Created (JSON Response)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endFill=0;rounded=0;" edge="1" parent="1" source="ll_ctrl" target="ll_api"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="770" y="500" /></Array></mxGeometry></mxCell>
+        <mxCell id="msg12" value="12. Parse JSON ke TransaksiModel" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endFill=0;rounded=0;" edge="1" parent="1" source="ll_api" target="ll_prov"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="580" y="530" /></Array></mxGeometry></mxCell>
+        <mxCell id="msg13" value="13. notifyListeners() &amp; return true" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endFill=0;rounded=0;" edge="1" parent="1" source="ll_prov" target="ll_ui"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="390" y="560" /></Array></mxGeometry></mxCell>
+        <mxCell id="msg14" value="14. Render E-Ticket &amp; QR Code Sukses" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endFill=0;rounded=0;" edge="1" parent="1" source="ll_ui" target="ll_user"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="200" y="590" /></Array></mxGeometry></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <!-- PAGE 4: ERD DIAGRAM -->
+  <diagram id="page_erd" name="4. ERD Diagram">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="Entity Relationship Diagram (ERD) - Database Bioskop" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="380" y="20" width="440" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="tbl_users" value="USERS&#xa;---------------------------------------&#xa;PK id : VARCHAR(255)&#xa;   name : VARCHAR(255)&#xa;   email : VARCHAR(255) [UK]&#xa;   password : VARCHAR(255)&#xa;   role : VARCHAR(50)&#xa;   created_at : TIMESTAMP&#xa;   updated_at : TIMESTAMP" style="shape=rect;whiteSpace=pre;html=1;align=left;spacingLeft=10;fillColor=#e7f5ff;strokeColor=#1971c2;fontFamily=Courier New;fontSize=12;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="100" width="240" height="150" as="geometry" />
+        </mxCell>
+
+        <mxCell id="tbl_films" value="FILMS&#xa;---------------------------------------&#xa;PK id : VARCHAR(255)&#xa;   judul : VARCHAR(255)&#xa;   genre : VARCHAR(100)&#xa;   durasi : INTEGER&#xa;   rating_usia : VARCHAR(20)&#xa;   poster_url : TEXT&#xa;   is_segera_tayang : BOOLEAN&#xa;   created_at : TIMESTAMP&#xa;   updated_at : TIMESTAMP" style="shape=rect;whiteSpace=pre;html=1;align=left;spacingLeft=10;fillColor=#e6fcf5;strokeColor=#0ca678;fontFamily=Courier New;fontSize=12;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="440" width="240" height="180" as="geometry" />
+        </mxCell>
+
+        <mxCell id="tbl_studios" value="STUDIOS&#xa;---------------------------------------&#xa;PK id : VARCHAR(255)&#xa;   nama : VARCHAR(100)&#xa;   kapasitas : INTEGER&#xa;   tipe_studio : VARCHAR(50)&#xa;   created_at : TIMESTAMP&#xa;   updated_at : TIMESTAMP" style="shape=rect;whiteSpace=pre;html=1;align=left;spacingLeft=10;fillColor=#fff9db;strokeColor=#f59f00;fontFamily=Courier New;fontSize=12;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="450" y="650" width="240" height="130" as="geometry" />
+        </mxCell>
+
+        <mxCell id="tbl_jadwals" value="JADWALS&#xa;---------------------------------------&#xa;PK id : VARCHAR(255)&#xa;FK film_id : VARCHAR(255)&#xa;FK studio_id : VARCHAR(255)&#xa;   tanggal : VARCHAR(50)&#xa;   jam_tayang : VARCHAR(50)&#xa;   harga : DECIMAL(12,2)&#xa;   created_at : TIMESTAMP&#xa;   updated_at : TIMESTAMP" style="shape=rect;whiteSpace=pre;html=1;align=left;spacingLeft=10;fillColor=#fff4e6;strokeColor=#fd7e14;fontFamily=Courier New;fontSize=12;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="450" y="440" width="240" height="160" as="geometry" />
+        </mxCell>
+
+        <mxCell id="tbl_transaksis" value="TRANSAKSIS&#xa;---------------------------------------&#xa;PK id : VARCHAR(255)&#xa;FK user_id : VARCHAR(255)&#xa;FK jadwal_id : VARCHAR(255)&#xa;   kursi_list : JSON&#xa;   total_harga : DECIMAL(12,2)&#xa;   metode_pembayaran : VARCHAR&#xa;   status : VARCHAR(50)&#xa;   tanggal_transaksi : VARCHAR&#xa;   created_at : TIMESTAMP&#xa;   updated_at : TIMESTAMP" style="shape=rect;whiteSpace=pre;html=1;align=left;spacingLeft=10;fillColor=#ffe3e3;strokeColor=#fa5252;fontFamily=Courier New;fontSize=12;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="840" y="240" width="260" height="190" as="geometry" />
+        </mxCell>
+
+        <mxCell id="tbl_drafts" value="AUTO_SAVE_DRAFTS&#xa;---------------------------------------&#xa;PK id : VARCHAR(255)&#xa;FK user_id : VARCHAR(255)&#xa;   form_key : VARCHAR(100)&#xa;   form_data : TEXT&#xa;   created_at : TIMESTAMP&#xa;   updated_at : TIMESTAMP" style="shape=rect;whiteSpace=pre;html=1;align=left;spacingLeft=10;fillColor=#f3f0ff;strokeColor=#7950f2;fontFamily=Courier New;fontSize=12;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="450" y="100" width="240" height="130" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_u_trx" value="1 : N&#xa;melakukan" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;entryX=0;entryY=0.25;strokeColor=#fa5252;strokeWidth=2;endArrow=ERmany;startArrow=ERone;" edge="1" source="tbl_users" target="tbl_transaksis" parent="1">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="780" y="175" /><mxPoint x="780" y="288" /></Array></mxGeometry>
+        </mxCell>
+
+        <mxCell id="rel_u_drafts" value="1 : N&#xa;memiliki" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;entryX=0;entryY=0.5;strokeColor=#7950f2;strokeWidth=2;endArrow=ERmany;startArrow=ERone;" edge="1" source="tbl_users" target="tbl_drafts" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_f_jadwal" value="1 : N&#xa;ditayangkan" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;entryX=0;entryY=0.5;strokeColor=#0ca678;strokeWidth=2;endArrow=ERmany;startArrow=ERone;" edge="1" source="tbl_films" target="tbl_jadwals" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_s_jadwal" value="1 : N&#xa;digunakan" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;entryX=0.5;entryY=1;strokeColor=#f59f00;strokeWidth=2;endArrow=ERmany;startArrow=ERone;" edge="1" source="tbl_studios" target="tbl_jadwals" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_j_trx" value="1 : N&#xa;dipesan" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;entryX=0;entryY=0.75;strokeColor=#fd7e14;strokeWidth=2;endArrow=ERmany;startArrow=ERone;" edge="1" source="tbl_jadwals" target="tbl_transaksis" parent="1">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="780" y="520" /><mxPoint x="780" y="383" /></Array></mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

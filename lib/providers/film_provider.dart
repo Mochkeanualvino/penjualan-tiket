@@ -1,13 +1,19 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/film_model.dart';
 import '../services/local_storage_service.dart';
 import '../services/api_service.dart';
+import '../services/firestore_service.dart';
+import '../screens/pelanggan/notifikasi_screen.dart';
+import '../utils/theme.dart';
 
 class FilmProvider extends ChangeNotifier {
   final List<FilmModel> _films = [];
   final List<FilmModel> _segeraTayang = [];
   bool _isLoading = false;
+  StreamSubscription? _firestoreSubscription;
+  bool _firestoreConnected = false;
 
   List<FilmModel> get films => _films;
   List<FilmModel> get segeraTayang => _segeraTayang;
@@ -16,6 +22,49 @@ class FilmProvider extends ChangeNotifier {
   FilmProvider() {
     _loadFromStorage();
     _syncFromApi(); // Sinkronisasi dari API Laravel
+    _listenToFirestore(); // Real-time sync dari Firestore
+  }
+
+  @override
+  void dispose() {
+    _firestoreSubscription?.cancel();
+    super.dispose();
+  }
+
+  /// Dengarkan perubahan data film dari Firestore secara real-time
+  /// Saat ada perubahan (admin tambah/edit/hapus dari Laptop),
+  /// data otomatis ter-update di HP pelanggan juga.
+  void _listenToFirestore() {
+    try {
+      _firestoreSubscription = FirestoreService.streamFilms().listen(
+        (firestoreFilms) {
+          if (firestoreFilms.isNotEmpty) {
+            _firestoreConnected = true;
+            _films.clear();
+            _segeraTayang.clear();
+
+            for (var film in firestoreFilms) {
+              if (film.isSegeraTayang) {
+                _segeraTayang.add(film);
+              } else {
+                _films.add(film);
+              }
+            }
+
+            notifyListeners();
+            _autoSave(); // Backup ke local storage
+            debugPrint('🔄 Firestore sync: ${_films.length} film tayang, ${_segeraTayang.length} segera tayang');
+          }
+        },
+        onError: (e) {
+          debugPrint('⚠️ Firestore stream error (mode offline): $e');
+          _firestoreConnected = false;
+        },
+      );
+    } catch (e) {
+      debugPrint('⚠️ Firestore listener gagal diinisialisasi: $e');
+      _firestoreConnected = false;
+    }
   }
 
   /// Muat data dari penyimpanan lokal, jika kosong gunakan seed data
@@ -34,6 +83,46 @@ class FilmProvider extends ChangeNotifier {
     } else {
       _seedSegeraTayang();
     }
+  }
+
+  /// Reload film dari penyimpanan lokal, Firestore & API
+  Future<void> refreshFilms() async {
+    // Coba ambil dari Firestore terlebih dahulu
+    try {
+      final firestoreFilms = await FirestoreService.getAllFilms();
+      if (firestoreFilms.isNotEmpty) {
+        _films.clear();
+        _segeraTayang.clear();
+        for (var film in firestoreFilms) {
+          if (film.isSegeraTayang) {
+            _segeraTayang.add(film);
+          } else {
+            _films.add(film);
+          }
+        }
+        notifyListeners();
+        _autoSave();
+        debugPrint('🔄 refreshFilms: Data dari Firestore berhasil dimuat');
+        return;
+      }
+    } catch (e) {
+      debugPrint('⚠️ refreshFilms: Firestore gagal, fallback ke local: $e');
+    }
+
+    // Fallback ke local storage
+    final savedFilms = LocalStorageService.loadList(LocalStorageService.keyFilms);
+    final savedSegera = LocalStorageService.loadList(LocalStorageService.keySegeraTayang);
+
+    if (savedFilms.isNotEmpty) {
+      _films.clear();
+      _films.addAll(savedFilms.map((m) => FilmModel.fromMap(m, m['id'] ?? '')));
+    }
+    if (savedSegera.isNotEmpty) {
+      _segeraTayang.clear();
+      _segeraTayang.addAll(savedSegera.map((m) => FilmModel.fromMap(m, m['id'] ?? '')));
+    }
+    notifyListeners();
+    await _syncFromApi();
   }
 
   /// Sinkronisasi data dari Laravel REST API (jika backend aktif)
@@ -124,42 +213,64 @@ class FilmProvider extends ChangeNotifier {
     required String ratingUsia,
     required String posterUrl,
     bool isSegeraTayang = false,
+    String sinopsis = '',
+    String sutradara = '',
+    String pemeran = '',
+    String trailerUrl = '',
   }) async {
     _isLoading = true;
     notifyListeners();
-    await Future.delayed(const Duration(milliseconds: 400));
 
-    final newFilm = FilmModel(
-      id: const Uuid().v4(),
-      judul: judul,
-      genre: genre,
-      durasi: durasi,
-      ratingUsia: ratingUsia,
-      posterUrl: posterUrl.isNotEmpty
-          ? posterUrl
-          : 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=600&auto=format&fit=crop',
-      isSegeraTayang: isSegeraTayang,
-    );
+    try {
+      await Future.delayed(const Duration(milliseconds: 400));
 
-    if (isSegeraTayang) {
-      _segeraTayang.add(newFilm);
-    } else {
-      _films.add(newFilm);
+      final newFilm = FilmModel(
+        id: const Uuid().v4(),
+        judul: judul,
+        genre: genre,
+        durasi: durasi,
+        ratingUsia: ratingUsia,
+        posterUrl: posterUrl.isNotEmpty
+            ? posterUrl
+            : 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=600&auto=format&fit=crop',
+        isSegeraTayang: isSegeraTayang,
+        sinopsis: sinopsis,
+        sutradara: sutradara,
+        pemeran: pemeran,
+        trailerUrl: trailerUrl,
+      );
+
+      if (isSegeraTayang) {
+        _segeraTayang.add(newFilm);
+      } else {
+        _films.add(newFilm);
+      }
+
+      await _autoSave(); // AUTO SAVE LOCAL
+
+      // Sync ke Firestore
+      try {
+        await FirestoreService.addFilm(newFilm);
+      } catch (e) {
+        debugPrint('FilmProvider: Firestore sync gagal: $e');
+      }
+
+      NotificationService().addNotification(
+        title: '🎬 Film Baru: $judul',
+        message: 'Film "$judul" ($genre) kini telah tayang dan dapat dipesan di XXI.',
+        icon: Icons.movie,
+        color: AppTheme.primaryGold,
+      );
+
+      // Sync ke API Laravel (fallback)
+      ApiService.post('/films', newFilm.toMap());
+    } catch (e) {
+      debugPrint('FilmProvider addFilm error: $e');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-
-    _isLoading = false;
-    notifyListeners();
-    _autoSave(); // AUTO SAVE LOCAL
-
-    // Sync ke API Laravel
-    ApiService.post('/films', {
-      'judul': judul,
-      'genre': genre,
-      'durasi': durasi,
-      'rating_usia': ratingUsia,
-      'poster_url': posterUrl,
-      'is_segera_tayang': isSegeraTayang,
-    });
   }
 
   Future<void> updateFilm({
@@ -170,57 +281,86 @@ class FilmProvider extends ChangeNotifier {
     required String ratingUsia,
     required String posterUrl,
     required bool isSegeraTayang,
+    String sinopsis = '',
+    String sutradara = '',
+    String pemeran = '',
+    String trailerUrl = '',
   }) async {
     _isLoading = true;
     notifyListeners();
-    await Future.delayed(const Duration(milliseconds: 400));
 
-    // Remove from both lists first
-    _films.removeWhere((f) => f.id == id);
-    _segeraTayang.removeWhere((f) => f.id == id);
+    try {
+      await Future.delayed(const Duration(milliseconds: 400));
 
-    final updatedFilm = FilmModel(
-      id: id,
-      judul: judul,
-      genre: genre,
-      durasi: durasi,
-      ratingUsia: ratingUsia,
-      posterUrl: posterUrl,
-      isSegeraTayang: isSegeraTayang,
-    );
+      // Remove from both lists first
+      _films.removeWhere((f) => f.id == id);
+      _segeraTayang.removeWhere((f) => f.id == id);
 
-    if (isSegeraTayang) {
-      _segeraTayang.add(updatedFilm);
-    } else {
-      _films.add(updatedFilm);
+      final updatedFilm = FilmModel(
+        id: id,
+        judul: judul,
+        genre: genre,
+        durasi: durasi,
+        ratingUsia: ratingUsia,
+        posterUrl: posterUrl,
+        isSegeraTayang: isSegeraTayang,
+        sinopsis: sinopsis,
+        sutradara: sutradara,
+        pemeran: pemeran,
+        trailerUrl: trailerUrl,
+      );
+
+      if (isSegeraTayang) {
+        _segeraTayang.add(updatedFilm);
+      } else {
+        _films.add(updatedFilm);
+      }
+
+      await _autoSave(); // AUTO SAVE LOCAL
+
+      // Sync ke Firestore
+      try {
+        await FirestoreService.updateFilm(updatedFilm);
+      } catch (e) {
+        debugPrint('FilmProvider: Firestore update gagal: $e');
+      }
+
+      // Sync ke API Laravel (fallback)
+      ApiService.put('/films/$id', updatedFilm.toMap());
+    } catch (e) {
+      debugPrint('FilmProvider updateFilm error: $e');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-
-    _isLoading = false;
-    notifyListeners();
-    _autoSave(); // AUTO SAVE LOCAL
-
-    // Sync ke API Laravel
-    ApiService.put('/films/$id', {
-      'judul': judul,
-      'genre': genre,
-      'durasi': durasi,
-      'rating_usia': ratingUsia,
-      'poster_url': posterUrl,
-      'is_segera_tayang': isSegeraTayang,
-    });
   }
 
   Future<void> deleteFilm(String id) async {
     _isLoading = true;
     notifyListeners();
-    await Future.delayed(const Duration(milliseconds: 300));
-    _films.removeWhere((f) => f.id == id);
-    _segeraTayang.removeWhere((f) => f.id == id);
-    _isLoading = false;
-    notifyListeners();
-    _autoSave(); // AUTO SAVE LOCAL
 
-    // Sync ke API Laravel
-    ApiService.delete('/films/$id');
+    try {
+      await Future.delayed(const Duration(milliseconds: 300));
+      _films.removeWhere((f) => f.id == id);
+      _segeraTayang.removeWhere((f) => f.id == id);
+      await _autoSave(); // AUTO SAVE LOCAL
+
+      // Sync ke Firestore
+      try {
+        await FirestoreService.deleteFilm(id);
+      } catch (e) {
+        debugPrint('FilmProvider: Firestore delete gagal: $e');
+      }
+
+      // Sync ke API Laravel (fallback)
+      ApiService.delete('/films/$id');
+    } catch (e) {
+      debugPrint('FilmProvider deleteFilm error: $e');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 }

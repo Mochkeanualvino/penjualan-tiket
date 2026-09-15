@@ -5,7 +5,6 @@ import '../../providers/film_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/film_model.dart';
 import '../../utils/theme.dart';
-import 'pilih_jadwal_screen.dart';
 import 'bioskop_screen.dart';
 import 'mfood_screen.dart';
 import 'sewa_tempat_screen.dart';
@@ -20,8 +19,15 @@ class HomeScreen extends StatelessWidget {
     final filmProvider = Provider.of<FilmProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
 
-    return SingleChildScrollView(
-      child: Column(
+    return RefreshIndicator(
+      color: AppTheme.primaryGold,
+      backgroundColor: AppTheme.cardBg,
+      onRefresh: () async {
+        await filmProvider.refreshFilms();
+      },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ===== BANNER PROMO =====
@@ -31,8 +37,8 @@ class HomeScreen extends StatelessWidget {
             child: PageView(
               children: [
                 _buildBanner('PROMO SPESIAL', 'Diskon 50% untuk pembelian tiket kedua setiap hari Selasa!', Icons.local_offer),
-                _buildBanner('PREMIERE NIGHT', 'Nonton perdana film terbaru di IMAX hanya di Cinema XXI', Icons.star),
-                _buildBanner('M.TIX REWARDS', 'Kumpulkan poin setiap pembelian dan tukar dengan hadiah menarik', Icons.card_giftcard),
+                _buildBanner('PREMIERE NIGHT', 'Nonton perdana film terbaru dengan kualitas terbaik hanya di KENTICKET', Icons.star),
+                _buildBanner('KENTICKET REWARDS', 'Kumpulkan poin setiap pembelian dan tukar dengan hadiah menarik', Icons.card_giftcard),
               ],
             ),
           ),
@@ -47,7 +53,15 @@ class HomeScreen extends StatelessWidget {
                   Navigator.push(context, MaterialPageRoute(builder: (_) => const BioskopScreen()));
                 }),
                 _buildQuickMenu(context, Icons.theaters, 'Film', () {
-                  // Already on home, scroll to film section
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => SemuaFilmScreen(
+                        title: 'Daftar Semua Film',
+                        films: [...filmProvider.films, ...filmProvider.segeraTayang],
+                      ),
+                    ),
+                  );
                 }),
                 _buildQuickMenu(context, Icons.fastfood_outlined, 'm.food', () {
                   Navigator.push(context, MaterialPageRoute(builder: (_) => const MFoodScreen()));
@@ -194,8 +208,9 @@ class HomeScreen extends StatelessWidget {
           const SizedBox(height: 32),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildBanner(String title, String subtitle, IconData icon) {
     return Container(

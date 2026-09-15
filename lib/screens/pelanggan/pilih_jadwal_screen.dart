@@ -215,229 +215,303 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen> with SingleTicker
               indicatorColor: AppTheme.primaryGold,
               labelColor: Colors.white,
               unselectedLabelColor: AppTheme.textMuted,
+              onTap: (_) => setState(() {}),
               tabs: const [
-                Tab(text: 'Jadwal'),
-                Tab(text: 'Detail'),
+                Tab(text: 'Jadwal Bioskop'),
+                Tab(text: 'Sinopsis & Detail'),
               ],
             ),
             const SizedBox(height: 16),
 
-            // ===== DATE PICKER ROW =====
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
+            if (_tabController.index == 1)
+              // ===== TAB 2: DETAIL FILM VIEW =====
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppTheme.cardBgLight,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: Colors.white10),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Sinopsis Film', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryGold, fontSize: 16)),
+                          const SizedBox(height: 8),
+                          Text(
+                            widget.film.sinopsis.isNotEmpty
+                                ? widget.film.sinopsis
+                                : 'Saksikan keseruan cerita "${widget.film.judul}" di layar lebar Cinema XXI dengan audio Dolby Atmos dan visual spektakuler.',
+                            style: const TextStyle(color: Colors.white70, height: 1.5, fontSize: 13),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppTheme.cardBgLight,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: Colors.white10),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.person_pin, color: AppTheme.primaryGold, size: 18),
+                              const SizedBox(width: 8),
+                              Text('Sutradara: ${widget.film.sutradara.isNotEmpty ? widget.film.sutradara : "Cinema Studio"}', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(Icons.people_alt_outlined, color: AppTheme.primaryGold, size: 18),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text('Pemeran: ${widget.film.pemeran.isNotEmpty ? widget.film.pemeran : "Aktor & Aktris Ternama"}', style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                  ],
+                ),
+              )
+            else
+              // ===== TAB 1: JADWAL BIOSKOP VIEW =====
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Text(
-                        _getMonthName(selectedDate),
-                        style: GoogleFonts.poppins(fontSize: 14, color: AppTheme.textMuted),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${selectedDate.year}',
-                        style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    height: 70,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: _dates.length,
-                      itemBuilder: (ctx, index) {
-                        final date = _dates[index];
-                        final isSelected = index == _selectedDateIndex;
-                        final isDateFriday = date.weekday == DateTime.friday;
-
-                        return GestureDetector(
-                          onTap: () => setState(() => _selectedDateIndex = index),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            width: 54,
-                            margin: const EdgeInsets.only(right: 10),
-                            decoration: BoxDecoration(
-                              color: isSelected ? AppTheme.primaryGold : (isDateFriday ? AppTheme.accentGreen.withAlpha(40) : AppTheme.cardBgLight),
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: isSelected ? AppTheme.primaryGold : (isDateFriday ? AppTheme.accentGreen : Colors.white10),
-                                width: isSelected ? 2 : 1,
-                              ),
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  _getDayName(date),
-                                  style: TextStyle(
-                                    color: isSelected ? Colors.black : (isDateFriday ? AppTheme.accentGreen : AppTheme.textMuted),
-                                    fontSize: 12,
-                                    fontWeight: isSelected || isDateFriday ? FontWeight.bold : FontWeight.normal,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '${date.day}'.padLeft(2, '0'),
-                                  style: TextStyle(
-                                    color: isSelected ? Colors.black : Colors.white,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // ===== CINEMA XXI FILTER CHIP =====
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.white24),
-                    ),
-                    child: const Icon(Icons.tune, color: AppTheme.textMuted, size: 20),
-                  ),
-                  const SizedBox(width: 10),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: AppTheme.cardBgLight,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppTheme.primaryGold),
-                    ),
-                    child: Text(
-                      'Cinema XXI',
-                      style: GoogleFonts.poppins(
-                        color: AppTheme.primaryGold,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // ===== CINEMA SCHEDULE CARDS =====
-            ...cinemas.map((cinema) {
-              final double effectiveHarga = isFriday ? 12000 : (jadwalList.isNotEmpty ? jadwalList.first.hargaTiket : 40000);
-
-              return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
+                  // ===== DATE PICKER ROW =====
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    cinema['name']!,
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white),
-                                  ),
-                                  Text(
-                                    '(${cinema['distance']})',
-                                    style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
-                                  ),
-                                ],
-                              ),
+                            Text(
+                              _getMonthName(selectedDate),
+                              style: GoogleFonts.poppins(fontSize: 14, color: AppTheme.textMuted),
                             ),
-                            const Icon(Icons.keyboard_arrow_up, color: AppTheme.textMuted),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        OutlinedButton.icon(
-                          onPressed: () {},
-                          icon: const Icon(Icons.info_outline, size: 14),
-                          label: const Text('Info bioskop', style: TextStyle(fontSize: 12)),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Reguler 2D', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  Formatters.currency(effectiveHarga),
-                                  style: const TextStyle(color: AppTheme.primaryGold, fontWeight: FontWeight.bold),
-                                ),
-                                if (isFriday)
-                                  const Text(
-                                    'Promo Jumat Hemat Rp 12.000',
-                                    style: TextStyle(color: AppTheme.accentGreen, fontSize: 10, fontWeight: FontWeight.bold),
-                                  ),
-                              ],
+                            const SizedBox(width: 4),
+                            Text(
+                              '${selectedDate.year}',
+                              style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 14),
-                        Wrap(
-                          spacing: 10,
-                          runSpacing: 10,
-                          children: _getTimeSlotsForCinema(cinema['name']!).map((time) {
-                            return SizedBox(
-                              width: MediaQuery.of(context).size.width / 2 - 50,
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  if (jadwalList.isNotEmpty) {
-                                    final currentJadwal = jadwalList.first;
-                                    final promoJadwal = currentJadwal;
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => PilihKursiScreen(jadwal: promoJadwal),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          height: 70,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: _dates.length,
+                            itemBuilder: (ctx, index) {
+                              final date = _dates[index];
+                              final isSelected = index == _selectedDateIndex;
+                              final isDateFriday = date.weekday == DateTime.friday;
+
+                              return GestureDetector(
+                                onTap: () => setState(() => _selectedDateIndex = index),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  width: 54,
+                                  margin: const EdgeInsets.only(right: 10),
+                                  decoration: BoxDecoration(
+                                    color: isSelected ? AppTheme.primaryGold : (isDateFriday ? AppTheme.accentGreen.withAlpha(40) : AppTheme.cardBgLight),
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                      color: isSelected ? AppTheme.primaryGold : (isDateFriday ? AppTheme.accentGreen : Colors.white10),
+                                      width: isSelected ? 2 : 1,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        _getDayName(date),
+                                        style: TextStyle(
+                                          color: isSelected ? Colors.black : (isDateFriday ? AppTheme.accentGreen : AppTheme.textMuted),
+                                          fontSize: 12,
+                                          fontWeight: isSelected || isDateFriday ? FontWeight.bold : FontWeight.normal,
+                                        ),
                                       ),
-                                    );
-                                  } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Jadwal $time - ${cinema['name']}')),
-                                    );
-                                  }
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${date.day}'.padLeft(2, '0'),
+                                        style: TextStyle(
+                                          color: isSelected ? Colors.black : Colors.white,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                child: Text(time, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                              ),
-                            );
-                          }).toList(),
+                              );
+                            },
+                          ),
                         ),
                       ],
                     ),
                   ),
-                ),
-              );
-            }),
-            const SizedBox(height: 32),
+                  const SizedBox(height: 16),
+
+                  // ===== CINEMA XXI FILTER CHIP =====
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.white24),
+                          ),
+                          child: const Icon(Icons.tune, color: AppTheme.textMuted, size: 20),
+                        ),
+                        const SizedBox(width: 10),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: AppTheme.cardBgLight,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: AppTheme.primaryGold),
+                          ),
+                          child: Text(
+                            'Cinema XXI',
+                            style: GoogleFonts.poppins(
+                              color: AppTheme.primaryGold,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // ===== CINEMA SCHEDULE CARDS =====
+                  ...cinemas.map((cinema) {
+                    final double effectiveHarga = isFriday ? 12000 : (jadwalList.isNotEmpty ? jadwalList.first.hargaTiket : 40000);
+
+                    return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          cinema['name']!,
+                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white),
+                                        ),
+                                        Text(
+                                          '(${cinema['distance']})',
+                                          style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const Icon(Icons.keyboard_arrow_up, color: AppTheme.textMuted),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              OutlinedButton.icon(
+                                onPressed: () {},
+                                icon: const Icon(Icons.info_outline, size: 14),
+                                label: const Text('Info bioskop', style: TextStyle(fontSize: 12)),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text('Reguler 2D', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        Formatters.currency(effectiveHarga),
+                                        style: const TextStyle(color: AppTheme.primaryGold, fontWeight: FontWeight.bold),
+                                      ),
+                                      if (isFriday)
+                                        const Text(
+                                          'Promo Jumat Hemat Rp 12.000',
+                                          style: TextStyle(color: AppTheme.accentGreen, fontSize: 10, fontWeight: FontWeight.bold),
+                                        ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 14),
+                              Wrap(
+                                spacing: 10,
+                                runSpacing: 10,
+                                children: _getTimeSlotsForCinema(cinema['name']!).map((time) {
+                                  return SizedBox(
+                                    width: MediaQuery.of(context).size.width / 2 - 50,
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        if (jadwalList.isNotEmpty) {
+                                          final currentJadwal = jadwalList.first;
+                                          final promoJadwal = currentJadwal;
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) => PilihKursiScreen(jadwal: promoJadwal),
+                                            ),
+                                          );
+                                        } else {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('Jadwal $time - ${cinema['name']}')),
+                                          );
+                                        }
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                      ),
+                                      child: Text(time, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                  const SizedBox(height: 32),
+                ],
+              ),
           ],
         ),
       ),

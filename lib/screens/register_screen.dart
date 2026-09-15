@@ -70,10 +70,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (mounted && success) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Registrasi berhasil! Selamat datang!'),
+            content: Text('🎉 Registrasi berhasil! Silakan masuk dengan email dan kata sandi baru Anda.'),
             backgroundColor: AppTheme.accentGreen,
+            duration: Duration(seconds: 4),
           ),
         );
+        Navigator.pop(context); // Langsung kembali ke halaman login
       }
     }
   }
@@ -85,7 +87,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Buat akun m.tix kamu',
+          'Buat Akun KENTICKET',
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w600,

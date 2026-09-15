@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/film_provider.dart';
 import '../../utils/theme.dart';
+import '../../widgets/kenticket_logo.dart';
 import 'home_screen.dart';
 import 'riwayat_transaksi_screen.dart';
 import 'promo_screen.dart';
 import 'profil_pelanggan_screen.dart';
-import 'bioskop_screen.dart';
 import 'search_film_delegate.dart';
+import 'notifikasi_screen.dart';
 
 class DashboardPelangganScreen extends StatefulWidget {
   const DashboardPelangganScreen({super.key});
@@ -34,32 +34,7 @@ class _DashboardPelangganScreenState extends State<DashboardPelangganScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            // Logo
-            Text(
-              'm.tix',
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w800,
-                fontSize: 22,
-                color: AppTheme.primaryGold,
-              ),
-            ),
-            Text(
-              ' by ',
-              style: GoogleFonts.poppins(fontSize: 12, color: AppTheme.textMuted),
-            ),
-            Text(
-              'XXI',
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-                color: AppTheme.primaryGold,
-                letterSpacing: 2,
-              ),
-            ),
-          ],
-        ),
+        title: const KenticketLogo(size: 28, showText: true, isCompact: true),
         actions: [
           // City Selector Chip
           InkWell(
@@ -88,7 +63,44 @@ class _DashboardPelangganScreenState extends State<DashboardPelangganScreen> {
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
+
+          // Notification Bell with Dynamic Unread Badge
+          AnimatedBuilder(
+            animation: NotificationService(),
+            builder: (context, _) {
+              final unreadCount = NotificationService().getUnreadCountForUser(authProvider.currentUser?.id);
+
+              return IconButton(
+                icon: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    const Icon(Icons.notifications_outlined, color: AppTheme.primaryGold),
+                    if (unreadCount > 0)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: const BoxDecoration(
+                            color: AppTheme.accentRed,
+                            shape: BoxShape.circle,
+                          ),
+                          constraints: const BoxConstraints(minWidth: 10, minHeight: 10),
+                        ),
+                      ),
+                  ],
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const NotifikasiScreen()),
+                  );
+                },
+              );
+            },
+          ),
+
           IconButton(
             icon: const Icon(Icons.search, color: AppTheme.primaryGold),
             onPressed: () {
@@ -126,7 +138,7 @@ class _DashboardPelangganScreenState extends State<DashboardPelangganScreen> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.account_circle_outlined),
-            label: 'm.tix Saya',
+            label: 'Akun Saya',
           ),
         ],
       ),
@@ -170,7 +182,7 @@ class _DashboardPelangganScreenState extends State<DashboardPelangganScreen> {
                       ),
                     ),
                     Text(
-                      'Pilih Daerah',
+                      'Pilih Daerah Bioskop',
                       style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryGold),
                     ),
                     const SizedBox(height: 12),

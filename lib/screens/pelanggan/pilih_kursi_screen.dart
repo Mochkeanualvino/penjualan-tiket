@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/jadwal_model.dart';
-import '../../models/kursi_model.dart';
 import '../../providers/kursi_provider.dart';
 import '../../providers/transaksi_provider.dart';
 import '../../providers/auth_provider.dart';

@@ -1,0 +1,112 @@
+<mxfile host="app.diagrams.net" modified="2026-09-01T08:00:00.000Z" agent="Antigravity" version="21.0.0" type="device">
+  <diagram id="sequence_diagram" name="Sequence Diagram">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="Sequence Diagram: Alur Pemesanan &amp; Pembayaran Tiket Bioskop" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="320" y="20" width="530" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Lifelines & Headers -->
+        <!-- User -->
+        <mxCell id="ll_user" value="Pelanggan" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#d0ebff;strokeColor=#1971c2;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="80" width="100" height="600" as="geometry" />
+        </mxCell>
+        <!-- UI -->
+        <mxCell id="ll_ui" value="Flutter UI&#xa;(PilihKursiScreen)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#d3f9d8;strokeColor=#2b8a3e;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="230" y="80" width="130" height="600" as="geometry" />
+        </mxCell>
+        <!-- Provider -->
+        <mxCell id="ll_prov" value="TransaksiProvider&#xa;(State Management)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#fff3bf;strokeColor=#e67700;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="80" width="140" height="600" as="geometry" />
+        </mxCell>
+        <!-- ApiService -->
+        <mxCell id="ll_api" value="ApiService&#xa;(HTTP Client)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#ffe8cc;strokeColor=#d9480f;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="620" y="80" width="120" height="600" as="geometry" />
+        </mxCell>
+        <!-- Laravel Controller -->
+        <mxCell id="ll_ctrl" value="TransaksiController&#xa;(Laravel API)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#ffe3e3;strokeColor=#c92a2a;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="800" y="80" width="140" height="600" as="geometry" />
+        </mxCell>
+        <!-- Database -->
+        <mxCell id="ll_db" value="Database&#xa;(SQLite / MySQL)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;fillColor=#f3f0ff;strokeColor=#5f3dc4;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="80" width="120" height="600" as="geometry" />
+        </mxCell>
+
+        <!-- Message 1 -->
+        <mxCell id="msg1" value="1. Pilih Kursi [A1, A2] &amp; Klik Pesan" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1" source="ll_user" target="ll_ui">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="110" y="160" as="sourcePoint" /><mxPoint x="290" y="160" as="targetPoint" /><Array as="points"><mxPoint x="200" y="160" /></Array></mxGeometry>
+        </mxCell>
+
+        <!-- Message 2 -->
+        <mxCell id="msg2" value="2. setSelectedKursi(['A1','A2'])" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1" source="ll_ui" target="ll_prov">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="295" y="190" as="sourcePoint" /><mxPoint x="490" y="190" as="targetPoint" /><Array as="points"><mxPoint x="390" y="190" /></Array></mxGeometry>
+        </mxCell>
+
+        <!-- Message 3 -->
+        <mxCell id="msg3" value="3. Input Metode Bayar &amp; Submit" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1" source="ll_user" target="ll_ui">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="200" y="240" /></Array></mxGeometry>
+        </mxCell>
+
+        <!-- Message 4 -->
+        <mxCell id="msg4" value="4. submitTransaksi(trxData)" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1" source="ll_ui" target="ll_prov">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="390" y="270" /></Array></mxGeometry>
+        </mxCell>
+
+        <!-- Message 5 -->
+        <mxCell id="msg5" value="5. post('/api/v1/transaksi', payload)" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1" source="ll_prov" target="ll_api">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="580" y="300" /></Array></mxGeometry>
+        </mxCell>
+
+        <!-- Message 6 -->
+        <mxCell id="msg6" value="6. HTTP POST + Bearer Token" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1" source="ll_api" target="ll_ctrl">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="770" y="330" /></Array></mxGeometry>
+        </mxCell>
+
+        <!-- Message 7 -->
+        <mxCell id="msg7" value="7. Validasi ketersediaan kursi" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1" source="ll_ctrl" target="ll_db">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="960" y="370" /></Array></mxGeometry>
+        </mxCell>
+
+        <!-- Message 8 -->
+        <mxCell id="msg8" value="8. Return kursi tersedia (OK)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endFill=0;rounded=0;" edge="1" parent="1" source="ll_db" target="ll_ctrl">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="960" y="400" /></Array></mxGeometry>
+        </mxCell>
+
+        <!-- Message 9 -->
+        <mxCell id="msg9" value="9. INSERT INTO transaksis (id, user_id, kursi_list, total, status)" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;" edge="1" parent="1" source="ll_ctrl" target="ll_db">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="960" y="440" /></Array></mxGeometry>
+        </mxCell>
+
+        <!-- Message 10 -->
+        <mxCell id="msg10" value="10. Transaksi tersimpan (Success)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endFill=0;rounded=0;" edge="1" parent="1" source="ll_db" target="ll_ctrl">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="960" y="470" /></Array></mxGeometry>
+        </mxCell>
+
+        <!-- Message 11 -->
+        <mxCell id="msg11" value="11. 201 Created (JSON Response)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endFill=0;rounded=0;" edge="1" parent="1" source="ll_ctrl" target="ll_api">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="770" y="500" /></Array></mxGeometry>
+        </mxCell>
+
+        <!-- Message 12 -->
+        <mxCell id="msg12" value="12. Parse JSON ke TransaksiModel" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endFill=0;rounded=0;" edge="1" parent="1" source="ll_api" target="ll_prov">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="580" y="530" /></Array></mxGeometry>
+        </mxCell>
+
+        <!-- Message 13 -->
+        <mxCell id="msg13" value="13. notifyListeners() &amp; return true" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endFill=0;rounded=0;" edge="1" parent="1" source="ll_prov" target="ll_ui">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="390" y="560" /></Array></mxGeometry>
+        </mxCell>
+
+        <!-- Message 14 -->
+        <mxCell id="msg14" value="14. Render E-Ticket &amp; QR Code Sukses" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endFill=0;rounded=0;" edge="1" parent="1" source="ll_ui" target="ll_user">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="200" y="590" /></Array></mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

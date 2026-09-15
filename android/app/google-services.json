@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1007565664646",
+    "project_id": "kenticket-bioskop",
+    "storage_bucket": "kenticket-bioskop.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1007565664646:android:0cc2bed226f5fbbee03c07",
+        "android_client_info": {
+          "package_name": "com.bioskop.tiket_bioskop"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDOkqpTac5uKe7GLDwje6tBBouQPzASRXQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

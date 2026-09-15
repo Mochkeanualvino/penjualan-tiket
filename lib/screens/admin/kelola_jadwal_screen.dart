@@ -45,7 +45,7 @@ class KelolaJadwalScreen extends StatelessWidget {
 
     AutoSaveStatus currentStatus = AutoSaveStatus.idle;
 
-    void triggerAutoSave(VoidCallback setStateDialog) {
+    void triggerAutoSave(StateSetter setStateDialog) {
       AutoSaveService.onInputChanged(
         formKey: draftKey,
         data: {
@@ -250,6 +250,9 @@ class KelolaJadwalScreen extends StatelessWidget {
                     final studio = studioProvider.getStudioById(selectedStudioId);
 
                     if (film != null && studio != null) {
+                      final hargaClean = hargaController.text.replaceAll(RegExp(r'[^0-9.]'), '');
+                      final parsedHarga = double.tryParse(hargaClean) ?? 50000.0;
+
                       if (jadwal == null) {
                         await jadwalProvider.addJadwal(
                           filmId: film.id,
@@ -259,7 +262,7 @@ class KelolaJadwalScreen extends StatelessWidget {
                           namaStudio: studio.namaStudio,
                           tanggal: selectedDate,
                           jam: jamController.text.trim(),
-                          hargaTiket: double.parse(hargaController.text.trim()),
+                          hargaTiket: parsedHarga,
                         );
                       } else {
                         await jadwalProvider.updateJadwal(
@@ -271,7 +274,7 @@ class KelolaJadwalScreen extends StatelessWidget {
                           namaStudio: studio.namaStudio,
                           tanggal: selectedDate,
                           jam: jamController.text.trim(),
-                          hargaTiket: double.parse(hargaController.text.trim()),
+                          hargaTiket: parsedHarga,
                         );
                       }
                     }

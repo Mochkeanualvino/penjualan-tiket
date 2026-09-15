@@ -26,7 +26,7 @@ class KelolaStudioScreen extends StatelessWidget {
 
     AutoSaveStatus currentStatus = AutoSaveStatus.idle;
 
-    void triggerAutoSave(VoidCallback setStateDialog) {
+    void triggerAutoSave(StateSetter setStateDialog) {
       AutoSaveService.onInputChanged(
         formKey: draftKey,
         data: {
@@ -89,16 +89,19 @@ class KelolaStudioScreen extends StatelessWidget {
                 onPressed: () async {
                   if (formKey.currentState!.validate()) {
                     final studioProvider = Provider.of<StudioProvider>(context, listen: false);
+                    final kapasitasClean = kapasitasController.text.replaceAll(RegExp(r'[^0-9]'), '');
+                    final parsedKapasitas = int.tryParse(kapasitasClean) ?? 50;
+
                     if (studio == null) {
                       await studioProvider.addStudio(
                         namaStudio: namaController.text.trim(),
-                        kapasitas: int.parse(kapasitasController.text.trim()),
+                        kapasitas: parsedKapasitas,
                       );
                     } else {
                       await studioProvider.updateStudio(
                         id: studio.id,
                         namaStudio: namaController.text.trim(),
-                        kapasitas: int.parse(kapasitasController.text.trim()),
+                        kapasitas: parsedKapasitas,
                       );
                     }
                     AutoSaveService.clearDraft(draftKey);

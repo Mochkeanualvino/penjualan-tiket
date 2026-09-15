@@ -1,8 +1,13 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../providers/auth_provider.dart';
+import '../services/database_service.dart';
 import '../utils/theme.dart';
+import '../widgets/kenticket_logo.dart';
+import '../widgets/cinematic_login_loader.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -18,6 +23,11 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
+  // 7-second cinematic loader state
+  bool _showCinematicLoader = false;
+  String _pendingUserName = '';
+  Future<void> Function()? _onLoaderFinished;
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -27,39 +37,193 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _handleLogin() async {
     if (_formKey.currentState!.validate()) {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
+      final db = DatabaseService();
+      final user = db.getUserByEmail(email);
 
-      bool success = await authProvider.login(email, password);
-
-      if (mounted && success) {
+      if (user == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Selamat Datang, ${authProvider.currentUser?.name}!'),
-            backgroundColor: AppTheme.accentGreen,
+          const SnackBar(
+            content: Text('⚠️ Akun belum terdaftar! Silakan daftarkan akun baru terlebih dahulu.'),
+            backgroundColor: AppTheme.accentRed,
+            duration: Duration(seconds: 4),
           ),
         );
+        return;
+      }
+
+      // Valid account: Trigger 7-second cinematic animation loader
+      setState(() {
+        _showCinematicLoader = true;
+        _pendingUserName = user.name;
+        _onLoaderFinished = () async {
+          final authProvider = Provider.of<AuthProvider>(context, listen: false);
+          await authProvider.login(email, password);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Selamat Datang di KENTICKET, ${user.name}!'),
+                backgroundColor: AppTheme.accentGreen,
+              ),
+            );
+          }
+        };
+      });
+    }
+  }
+
+  void _handleGoogleLogin() async {
+    if (kIsWeb) {
+      _showGoogleWebAccountDialog();
+      return;
+    }
+
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        scopes: ['email', 'profile'],
+      );
+
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        // Pengguna membatalkan pemilihan akun Google
+        return;
+      }
+
+      final String email = googleUser.email;
+      final String name = googleUser.displayName ?? email.split('@').first;
+      _proceedGoogleLogin(email, name);
+    } catch (e) {
+      debugPrint('Google Sign-In Exception: $e');
+      if (mounted) {
+        _showGoogleWebAccountDialog();
       }
     }
   }
 
-  void _fillQuickCredentials(String email) {
+  void _proceedGoogleLogin(String email, String name) {
+    if (!mounted) return;
     setState(() {
-      _emailController.text = email;
-      _passwordController.text = '123456';
+      _showCinematicLoader = true;
+      _pendingUserName = name;
+      _onLoaderFinished = () async {
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        await authProvider.loginWithGoogle(email: email, name: name);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('🎉 Berhasil masuk dengan Google: $name!'),
+              backgroundColor: AppTheme.accentGreen,
+            ),
+          );
+        }
+      };
     });
+  }
+
+  void _showGoogleWebAccountDialog() {
+    final emailCtrl = TextEditingController(text: 'alya.google@gmail.com');
+    final nameCtrl = TextEditingController(text: 'Alya (Google Account)');
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppTheme.cardBg,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 20,
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Image.network(
+                    'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/120px-Google_%22G%22_logo.svg.png',
+                    width: 24,
+                    height: 24,
+                    errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, color: Colors.blueAccent, size: 24),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  'Masuk dengan Google',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            const Text(
+              'Gunakan akun Google Anda untuk melanjutkan ke KENTICKET:',
+              style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: nameCtrl,
+              decoration: const InputDecoration(labelText: 'Nama Profil Google', prefixIcon: Icon(Icons.person)),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: emailCtrl,
+              decoration: const InputDecoration(labelText: 'Alamat Email Google (@gmail.com)', prefixIcon: Icon(Icons.email)),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                icon: const Icon(Icons.login, color: Colors.black),
+                label: const Text('MASUK DENGAN GOOGLE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  final email = emailCtrl.text.trim().isNotEmpty ? emailCtrl.text.trim() : 'user.google@gmail.com';
+                  final name = nameCtrl.text.trim().isNotEmpty ? nameCtrl.text.trim() : 'Pengguna Google';
+                  _proceedGoogleLogin(email, name);
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_showCinematicLoader) {
+      return CinematicLoginLoader(
+        userName: _pendingUserName,
+        onCompleted: () {
+          if (_onLoaderFinished != null) {
+            _onLoaderFinished!();
+          }
+        },
+      );
+    }
+
     final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF0F0F12), Color(0xFF1E1E24), Color(0xFF000000)],
+            colors: [Color(0xFF0A0A0D), Color(0xFF1E1E24), Color(0xFF000000)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -87,35 +251,24 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Header Logo
+                    // Header Logo KENTICKET
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                       decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppTheme.primaryGold.withAlpha(38),
-                        border: Border.all(color: AppTheme.primaryGold, width: 2),
+                        color: AppTheme.cardBgLight,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppTheme.primaryGold.withAlpha(60), width: 1),
                       ),
-                      child: const Icon(
-                        Icons.movie_filter_rounded,
-                        size: 48,
-                        color: AppTheme.primaryGold,
-                      ),
+                      child: const KenticketLogo(size: 38, showText: true),
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'CINESTAR XXI',
-                      style: GoogleFonts.poppins(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.primaryGold,
-                        letterSpacing: 2,
-                      ),
-                    ),
-                    Text(
-                      'Sistem Penjualan Tiket Bioskop',
+                      'Sistem Pemesanan Tiket Bioskop',
+                      textAlign: TextAlign.center,
                       style: GoogleFonts.poppins(
                         fontSize: 13,
                         color: AppTheme.textMuted,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -159,39 +312,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Quick Login Demo
-                    Text(
-                      'Demo Quick Login:',
-                      style: GoogleFonts.poppins(fontSize: 12, color: AppTheme.textMuted),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () => _fillQuickCredentials('admin@bioskop.com'),
-                            icon: const Icon(Icons.admin_panel_settings, size: 16),
-                            label: const Text('Admin', style: TextStyle(fontSize: 12)),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () => _fillQuickCredentials('pelanggan@bioskop.com'),
-                            icon: const Icon(Icons.person, size: 16),
-                            label: const Text('Pelanggan', style: TextStyle(fontSize: 12)),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 28),
-
                     // Login Button
                     authProvider.isLoading
                         ? const CircularProgressIndicator(color: AppTheme.primaryGold)
@@ -203,6 +323,36 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: const Text('MASUK SEKARANG'),
                             ),
                           ),
+                    const SizedBox(height: 16),
+
+                    // Google Login Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: OutlinedButton.icon(
+                        onPressed: _handleGoogleLogin,
+                        icon: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.g_mobiledata, color: Colors.blue, size: 22),
+                        ),
+                        label: Text(
+                          'Masuk dengan Google',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                            color: Colors.white,
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.white38, width: 1),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 20),
 
                     // Divider
@@ -234,10 +384,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                         child: Text(
-                          'BUAT AKUN BARU',
+                          'BUAT AKUN BARU (REGISTRASI)',
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.bold,
-                            fontSize: 15,
+                            fontSize: 14,
                             color: AppTheme.primaryGold,
                           ),
                         ),

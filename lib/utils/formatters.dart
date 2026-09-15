@@ -21,4 +21,8 @@ class Formatters {
   static String formatTime(String timeStr) {
     return timeStr;
   }
+
+  static String formatDateTime(DateTime date) {
+    return DateFormat('dd MMM yyyy, HH:mm', 'id_ID').format(date);
+  }
 }
