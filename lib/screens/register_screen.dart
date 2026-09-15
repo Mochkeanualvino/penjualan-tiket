@@ -67,15 +67,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
         birthDate: _birthDate,
       );
 
-      if (mounted && success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('🎉 Registrasi berhasil! Silakan masuk dengan email dan kata sandi baru Anda.'),
-            backgroundColor: AppTheme.accentGreen,
-            duration: Duration(seconds: 4),
-          ),
-        );
-        Navigator.pop(context); // Langsung kembali ke halaman login
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('🎉 Registrasi berhasil! Silakan masuk dengan email dan kata sandi baru Anda.'),
+              backgroundColor: AppTheme.accentGreen,
+              duration: Duration(seconds: 4),
+            ),
+          );
+          Navigator.pop(context); // Langsung kembali ke halaman login
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('⚠️ Email sudah terdaftar! Silakan gunakan email lain atau langsung masuk.'),
+              backgroundColor: AppTheme.accentRed,
+              duration: Duration(seconds: 4),
+            ),
+          );
+        }
       }
     }
   }

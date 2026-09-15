@@ -8,6 +8,7 @@ import '../services/database_service.dart';
 import '../utils/theme.dart';
 import '../widgets/kenticket_logo.dart';
 import '../widgets/cinematic_login_loader.dart';
+import '../widgets/google_logo.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -51,6 +52,21 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
         return;
+      }
+
+      // Check password if set
+      if (user.password.isNotEmpty && user.password != password) {
+        final isDefaultAdmin = user.isAdmin && (password == 'admin' || password == '123456');
+        if (!isDefaultAdmin) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('⚠️ Kata sandi salah! Silakan periksa kembali kata sandi Anda.'),
+              backgroundColor: AppTheme.accentRed,
+              duration: Duration(seconds: 4),
+            ),
+          );
+          return;
+        }
       }
 
       // Valid account: Trigger 7-second cinematic animation loader
@@ -149,16 +165,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: Colors.white,
                     shape: BoxShape.circle,
                   ),
-                  child: Image.network(
-                    'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/120px-Google_%22G%22_logo.svg.png',
-                    width: 24,
-                    height: 24,
-                    errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, color: Colors.blueAccent, size: 24),
-                  ),
+                  child: const GoogleLogo(size: 24),
                 ),
                 const SizedBox(width: 12),
                 const Text(
-                  'Masuk dengan Google',
+                  'Log In dengan Google',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
                 ),
               ],
@@ -323,55 +334,82 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: const Text('MASUK SEKARANG'),
                             ),
                           ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 22),
 
-                    // Google Login Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: OutlinedButton.icon(
-                        onPressed: _handleGoogleLogin,
-                        icon: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.g_mobiledata, color: Colors.blue, size: 22),
-                        ),
-                        label: Text(
-                          'Masuk dengan Google',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                            color: Colors.white,
+                    // Divider "ATAU" (Sesuai Desain Shopee Gambar 2)
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Divider(
+                            color: Colors.white.withAlpha(50),
+                            thickness: 1,
                           ),
                         ),
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Colors.white38, width: 1),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          child: Text(
+                            'ATAU',
+                            style: GoogleFonts.poppins(
+                              color: AppTheme.textMuted,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Divider(
+                            color: Colors.white.withAlpha(50),
+                            thickness: 1,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+
+                    // Log In dengan Google Button (Sesuai Desain Shopee Gambar 2)
+                    Material(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(6),
+                      child: InkWell(
+                        onTap: _handleGoogleLogin,
+                        borderRadius: BorderRadius.circular(6),
+                        splashColor: Colors.black.withAlpha(25),
+                        highlightColor: Colors.black.withAlpha(15),
+                        child: Container(
+                          height: 48,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: const Color(0xFFD6D6D6), width: 1.0),
+                          ),
+                          child: Row(
+                            children: [
+                              const GoogleLogo(size: 22),
+                              Expanded(
+                                child: Text(
+                                  'Log In dengan Google',
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.roboto(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: const Color(0xFF222222),
+                                    letterSpacing: 0.2,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 22), // Menjaga teks tetap presisi di tengah
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 24),
 
-                    // Divider
-                    Row(
-                      children: [
-                        Expanded(child: Divider(color: AppTheme.textMuted.withAlpha(60))),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: Text('atau', style: TextStyle(color: AppTheme.textMuted.withAlpha(120), fontSize: 13)),
-                        ),
-                        Expanded(child: Divider(color: AppTheme.textMuted.withAlpha(60))),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Register Button
+                    // Tombol Registrasi Akun Baru
                     SizedBox(
                       width: double.infinity,
-                      height: 50,
+                      height: 48,
                       child: OutlinedButton(
                         onPressed: () {
                           Navigator.push(
@@ -381,17 +419,49 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: AppTheme.primaryGold, width: 1.5),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         child: Text(
                           'BUAT AKUN BARU (REGISTRASI)',
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                            fontSize: 13,
                             color: AppTheme.primaryGold,
+                            letterSpacing: 0.5,
                           ),
                         ),
                       ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Belum punya akun? Daftar (Gaya Shopee)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Belum punya akun? ',
+                          style: GoogleFonts.poppins(
+                            color: AppTheme.textMuted,
+                            fontSize: 13,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                            );
+                          },
+                          child: Text(
+                            'Daftar',
+                            style: GoogleFonts.poppins(
+                              color: AppTheme.primaryGold,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

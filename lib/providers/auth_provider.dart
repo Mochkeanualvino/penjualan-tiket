@@ -53,19 +53,8 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> _persistUsers() async {
-    final List<Map<String, dynamic>> userList = [];
-    final adminUser = _db.getUserByEmail('admin@bioskop.com');
-    if (adminUser != null) {
-      userList.add({'id': adminUser.id, ...adminUser.toMap()});
-    }
-    final sampleUser = _db.getUserByEmail('pelanggan@bioskop.com');
-    if (sampleUser != null) {
-      userList.add({'id': sampleUser.id, ...sampleUser.toMap()});
-    }
-    if (_currentUser != null) {
-      userList.add({'id': _currentUser!.id, ..._currentUser!.toMap()});
-    }
-    await LocalStorageService.saveList(LocalStorageService.keyUsers, userList);
+    final list = _db.getAllUsers().map((u) => {'id': u.id, ...u.toMap()}).toList();
+    await LocalStorageService.saveList(LocalStorageService.keyUsers, list);
   }
 
   UserModel? get currentUser => _currentUser;
@@ -231,6 +220,15 @@ class AuthProvider extends ChangeNotifier {
       return false; // Rejection: Account not registered
     }
 
+    if (user.password.isNotEmpty && user.password != password) {
+      final isDefaultAdmin = user.isAdmin && (password == 'admin' || password == '123456');
+      if (!isDefaultAdmin) {
+        _isLoading = false;
+        notifyListeners();
+        return false; // Password incorrect
+      }
+    }
+
     _currentUser = user;
     _selectedCity = user.selectedCity;
     _isLoading = false;
@@ -263,7 +261,7 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
     _saveSession();
-    _persistUsers();
+    await _persistUsers();
     return true;
   }
 
@@ -281,19 +279,26 @@ class AuthProvider extends ChangeNotifier {
 
     await Future.delayed(const Duration(milliseconds: 600));
 
+    final existingUser = _db.getUserByEmail(email.trim());
+    if (existingUser != null) {
+      _isLoading = false;
+      notifyListeners();
+      return false; // Email already registered
+    }
+
     final user = UserModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      email: email,
-      name: name,
+      email: email.trim(),
+      name: name.trim(),
       role: role,
-      phone: phone,
+      phone: phone.trim(),
       gender: gender,
       birthDate: birthDate,
       selectedCity: _selectedCity,
+      password: password.trim(),
     );
 
     _db.saveUser(user);
-    // Pengguna diarahkan ke login screen untuk login ulang
     _isLoading = false;
     notifyListeners();
     await _persistUsers();

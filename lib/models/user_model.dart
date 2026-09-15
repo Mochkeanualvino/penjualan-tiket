@@ -7,6 +7,7 @@ class UserModel {
   final String gender; // 'Pria' or 'Wanita'
   final DateTime? birthDate;
   final String selectedCity;
+  final String password;
 
   UserModel({
     required this.id,
@@ -17,6 +18,7 @@ class UserModel {
     this.gender = 'Pria',
     this.birthDate,
     this.selectedCity = 'JAKARTA',
+    this.password = '',
   });
 
   bool get isAdmin => role.toLowerCase() == 'admin';
@@ -32,9 +34,10 @@ class UserModel {
       birthDate: map['birthDate'] != null
           ? (map['birthDate'] is DateTime
               ? map['birthDate']
-              : DateTime.parse(map['birthDate'].toString()))
+              : DateTime.tryParse(map['birthDate'].toString()))
           : null,
       selectedCity: map['selectedCity'] ?? 'JAKARTA',
+      password: map['password'] ?? '',
     );
   }
 
@@ -47,6 +50,7 @@ class UserModel {
       'gender': gender,
       'birthDate': birthDate?.toIso8601String(),
       'selectedCity': selectedCity,
+      'password': password,
     };
   }
 
@@ -59,6 +63,7 @@ class UserModel {
     String? gender,
     DateTime? birthDate,
     String? selectedCity,
+    String? password,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -69,6 +74,7 @@ class UserModel {
       gender: gender ?? this.gender,
       birthDate: birthDate ?? this.birthDate,
       selectedCity: selectedCity ?? this.selectedCity,
+      password: password ?? this.password,
     );
   }
 }
