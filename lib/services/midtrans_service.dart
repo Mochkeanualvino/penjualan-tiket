@@ -1,7 +1,5 @@
-import 'dart:convert';
 import 'dart:math';
-import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
+import 'api_service.dart';
 
 class MidtransTransactionResult {
   final bool isSuccess;
@@ -28,19 +26,6 @@ class MidtransTransactionResult {
 }
 
 class MidtransService {
-  // Sandbox API Keys (Dapat diganti dengan key produksi pengguna kapan saja)
-  static String clientKey = 'SB-Mid-client-CinemaTiket2026';
-  static String serverKey = 'SB-Mid-server-CinemaTiketSecret2026';
-  static bool isProduction = false;
-
-  static String get snapBaseUrl => isProduction
-      ? 'https://app.midtrans.com/snap/v1/transactions'
-      : 'https://app.sandbox.midtrans.com/snap/v1/transactions';
-
-  static String get snapRedirectBaseUrl => isProduction
-      ? 'https://app.midtrans.com/snap/v2/vtweb/'
-      : 'https://app.sandbox.midtrans.com/snap/v2/vtweb/';
-
   /// Menghasilkan Order ID unik untuk Midtrans
   static String generateOrderId(String prefix) {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -48,7 +33,7 @@ class MidtransService {
     return '$prefix-$timestamp-$randomDigits';
   }
 
-  /// Membuat transaksi Snap di Midtrans (dengan fallback simulator jika offline / server key sandbox)
+  /// Meminta backend Laravel membuat transaksi Snap di Midtrans.
   static Future<MidtransTransactionResult> createSnapTransaction({
     required String orderId,
     required double grossAmount,
@@ -59,118 +44,40 @@ class MidtransService {
     required int itemQty,
     String preferredPaymentType = 'qris',
   }) async {
-    final authString = base64Encode(utf8.encode('$serverKey:'));
-    final headers = {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Authorization': 'Basic $authString',
-    };
-
     final payload = {
-      'transaction_details': {
-        'order_id': orderId,
-        'gross_amount': grossAmount.toInt(),
-      },
-      'customer_details': {
-        'first_name': customerName,
-        'email': customerEmail.isNotEmpty ? customerEmail : 'customer@cinema.id',
-        'phone': customerPhone.isNotEmpty ? customerPhone : '081234567890',
-      },
-      'item_details': [
-        {
-          'id': 'ITEM-${orderId.hashCode.abs() % 10000}',
-          'price': (grossAmount / itemQty).round(),
-          'quantity': itemQty,
-          'name': itemName.length > 50 ? itemName.substring(0, 50) : itemName,
-        }
-      ],
-      'credit_card': {
-        'secure': true,
-      },
+      'order_id': orderId,
+      'gross_amount': grossAmount,
+      'customer_name': customerName,
+      'customer_email': customerEmail.isNotEmpty ? customerEmail : 'customer@cinema.id',
+      'customer_phone': customerPhone.isNotEmpty ? customerPhone : '081234567890',
+      'item_name': itemName.length > 50 ? itemName.substring(0, 50) : itemName,
+      'item_qty': itemQty,
     };
 
-    try {
-      final response = await http
-          .post(
-            Uri.parse(snapBaseUrl),
-            headers: headers,
-            body: jsonEncode(payload),
-          )
-          .timeout(const Duration(seconds: 4));
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = jsonDecode(response.body);
-        final token = data['token'] ?? '';
-        final redirectUrl = data['redirect_url'] ?? '$snapRedirectBaseUrl$token';
-
-        return MidtransTransactionResult(
-          isSuccess: true,
-          orderId: orderId,
-          snapToken: token,
-          redirectUrl: redirectUrl,
-          paymentType: preferredPaymentType,
-          vaNumber: _generateSimulatedVANumber(preferredPaymentType),
-          grossAmount: grossAmount,
-          message: 'Transaksi Midtrans Snap berhasil dibuat.',
-        );
-      }
-    } catch (e) {
-      debugPrint('MidtransService API call fallback to sandbox mode: $e');
+    final result = await ApiService.post('/payments/midtrans', payload);
+    final data = result?['data'];
+    if (result?['status'] != 'success' || data is! Map<String, dynamic> || data['token'] == null) {
+      throw StateError(result?['message']?.toString() ?? 'Backend Midtrans tidak mengembalikan token pembayaran.');
     }
 
-    // Fallback sandbox token & simulator
-    final simulatedToken = 'SNAP-${Random().nextInt(900000) + 100000}-${DateTime.now().millisecondsSinceEpoch}';
     return MidtransTransactionResult(
       isSuccess: true,
       orderId: orderId,
-      snapToken: simulatedToken,
-      redirectUrl: '$snapRedirectBaseUrl$simulatedToken',
+      snapToken: data['token'].toString(),
+      redirectUrl: data['redirect_url']?.toString(),
       paymentType: preferredPaymentType,
-      vaNumber: _generateSimulatedVANumber(preferredPaymentType),
+      vaNumber: null,
       grossAmount: grossAmount,
-      message: 'Transaksi Midtrans Snap Sandbox aktif.',
+      message: 'Transaksi Midtrans Snap berhasil dibuat.',
     );
   }
 
   /// Membuat nomor Virtual Account realistis berdasarkan bank
-  static String _generateSimulatedVANumber(String bankType) {
-    final rand = Random();
-    final unique = List.generate(10, (_) => rand.nextInt(10)).join();
-    if (bankType.contains('bca') || bankType == 'BCA') {
-      return '70012$unique';
-    } else if (bankType.contains('bri') || bankType == 'BRI') {
-      return '88012$unique';
-    } else if (bankType.contains('bni') || bankType == 'BNI') {
-      return '98812$unique';
-    } else if (bankType.contains('mandiri') || bankType == 'Mandiri') {
-      return '89612$unique';
-    } else {
-      return '10812$unique';
-    }
-  }
-
   /// Cek status transaksi ke Midtrans Core API
   static Future<Map<String, dynamic>?> checkTransactionStatus(String orderId) async {
-    final authString = base64Encode(utf8.encode('$serverKey:'));
-    final url = isProduction
-        ? 'https://api.midtrans.com/v2/$orderId/status'
-        : 'https://api.sandbox.midtrans.com/v2/$orderId/status';
-
-    try {
-      final response = await http.get(
-        Uri.parse(url),
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Basic $authString',
-        },
-      ).timeout(const Duration(seconds: 4));
-
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body);
-      }
-    } catch (e) {
-      debugPrint('Midtrans status check error: $e');
-    }
-    return null;
+    final result = await ApiService.get('/payments/midtrans/$orderId/status');
+    return result?['data'] is Map<String, dynamic>
+        ? Map<String, dynamic>.from(result!['data'] as Map)
+        : null;
   }
 }

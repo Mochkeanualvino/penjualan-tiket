@@ -41,13 +41,17 @@ class ApiService {
             body: jsonEncode(body),
           )
           .timeout(const Duration(seconds: 4));
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return jsonDecode(response.body);
-      }
+      final decoded = jsonDecode(response.body);
+      if (decoded is Map<String, dynamic>) return decoded;
+      debugPrint('ApiService POST $endpoint returned invalid JSON');
     } catch (e) {
       debugPrint('ApiService POST $endpoint error/offline: $e');
     }
     return null;
+  }
+
+  static Future<Map<String, dynamic>?> loginWithGoogle(String idToken) {
+    return post('/auth/google', {'id_token': idToken});
   }
 
   /// PUT request

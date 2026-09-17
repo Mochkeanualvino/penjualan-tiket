@@ -1,10 +1,8 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/film_model.dart';
 import '../services/local_storage_service.dart';
 import '../services/api_service.dart';
-import '../services/firestore_service.dart';
 import '../screens/pelanggan/notifikasi_screen.dart';
 import '../utils/theme.dart';
 
@@ -12,8 +10,6 @@ class FilmProvider extends ChangeNotifier {
   final List<FilmModel> _films = [];
   final List<FilmModel> _segeraTayang = [];
   bool _isLoading = false;
-  StreamSubscription? _firestoreSubscription;
-  bool _firestoreConnected = false;
 
   List<FilmModel> get films => _films;
   List<FilmModel> get segeraTayang => _segeraTayang;
@@ -22,49 +18,6 @@ class FilmProvider extends ChangeNotifier {
   FilmProvider() {
     _loadFromStorage();
     _syncFromApi(); // Sinkronisasi dari API Laravel
-    _listenToFirestore(); // Real-time sync dari Firestore
-  }
-
-  @override
-  void dispose() {
-    _firestoreSubscription?.cancel();
-    super.dispose();
-  }
-
-  /// Dengarkan perubahan data film dari Firestore secara real-time
-  /// Saat ada perubahan (admin tambah/edit/hapus dari Laptop),
-  /// data otomatis ter-update di HP pelanggan juga.
-  void _listenToFirestore() {
-    try {
-      _firestoreSubscription = FirestoreService.streamFilms().listen(
-        (firestoreFilms) {
-          if (firestoreFilms.isNotEmpty) {
-            _firestoreConnected = true;
-            _films.clear();
-            _segeraTayang.clear();
-
-            for (var film in firestoreFilms) {
-              if (film.isSegeraTayang) {
-                _segeraTayang.add(film);
-              } else {
-                _films.add(film);
-              }
-            }
-
-            notifyListeners();
-            _autoSave(); // Backup ke local storage
-            debugPrint('🔄 Firestore sync: ${_films.length} film tayang, ${_segeraTayang.length} segera tayang');
-          }
-        },
-        onError: (e) {
-          debugPrint('⚠️ Firestore stream error (mode offline): $e');
-          _firestoreConnected = false;
-        },
-      );
-    } catch (e) {
-      debugPrint('⚠️ Firestore listener gagal diinisialisasi: $e');
-      _firestoreConnected = false;
-    }
   }
 
   /// Muat data dari penyimpanan lokal, jika kosong gunakan seed data
@@ -85,31 +38,9 @@ class FilmProvider extends ChangeNotifier {
     }
   }
 
-  /// Reload film dari penyimpanan lokal, Firestore & API
+  /// Reload film dari API Laravel dengan fallback ke penyimpanan lokal.
   Future<void> refreshFilms() async {
-    // Coba ambil dari Firestore terlebih dahulu
-    try {
-      final firestoreFilms = await FirestoreService.getAllFilms();
-      if (firestoreFilms.isNotEmpty) {
-        _films.clear();
-        _segeraTayang.clear();
-        for (var film in firestoreFilms) {
-          if (film.isSegeraTayang) {
-            _segeraTayang.add(film);
-          } else {
-            _films.add(film);
-          }
-        }
-        notifyListeners();
-        _autoSave();
-        debugPrint('🔄 refreshFilms: Data dari Firestore berhasil dimuat');
-        return;
-      }
-    } catch (e) {
-      debugPrint('⚠️ refreshFilms: Firestore gagal, fallback ke local: $e');
-    }
-
-    // Fallback ke local storage
+    // Fallback ke local storage jika API sedang tidak tersedia.
     final savedFilms = LocalStorageService.loadList(LocalStorageService.keyFilms);
     final savedSegera = LocalStorageService.loadList(LocalStorageService.keySegeraTayang);
 
@@ -248,13 +179,6 @@ class FilmProvider extends ChangeNotifier {
 
       await _autoSave(); // AUTO SAVE LOCAL
 
-      // Sync ke Firestore
-      try {
-        await FirestoreService.addFilm(newFilm);
-      } catch (e) {
-        debugPrint('FilmProvider: Firestore sync gagal: $e');
-      }
-
       NotificationService().addNotification(
         title: '🎬 Film Baru: $judul',
         message: 'Film "$judul" ($genre) kini telah tayang dan dapat dipesan di XXI.',
@@ -318,13 +242,6 @@ class FilmProvider extends ChangeNotifier {
 
       await _autoSave(); // AUTO SAVE LOCAL
 
-      // Sync ke Firestore
-      try {
-        await FirestoreService.updateFilm(updatedFilm);
-      } catch (e) {
-        debugPrint('FilmProvider: Firestore update gagal: $e');
-      }
-
       // Sync ke API Laravel (fallback)
       ApiService.put('/films/$id', updatedFilm.toMap());
     } catch (e) {
@@ -345,13 +262,6 @@ class FilmProvider extends ChangeNotifier {
       _films.removeWhere((f) => f.id == id);
       _segeraTayang.removeWhere((f) => f.id == id);
       await _autoSave(); // AUTO SAVE LOCAL
-
-      // Sync ke Firestore
-      try {
-        await FirestoreService.deleteFilm(id);
-      } catch (e) {
-        debugPrint('FilmProvider: Firestore delete gagal: $e');
-      }
 
       // Sync ke API Laravel (fallback)
       ApiService.delete('/films/$id');

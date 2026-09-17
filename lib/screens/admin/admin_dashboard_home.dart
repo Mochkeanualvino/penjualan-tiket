@@ -60,35 +60,35 @@ class AdminDashboardHome extends StatelessWidget {
                     value: filmCount.toString(),
                     icon: Icons.movie,
                     color: AppTheme.primaryGold,
-                    onTap: () => onNavigateTab?.call(1),
+                    onTap: () => onNavigateTab?.call(2),
                   ),
                   _buildStatCard(
                     title: 'Total Studio',
                     value: studioCount.toString(),
                     icon: Icons.meeting_room,
                     color: AppTheme.accentBlue,
-                    onTap: () => onNavigateTab?.call(2),
+                    onTap: () => onNavigateTab?.call(3),
                   ),
                   _buildStatCard(
                     title: 'Jadwal Aktif',
                     value: jadwalCount.toString(),
                     icon: Icons.schedule,
                     color: AppTheme.accentGreen,
-                    onTap: () => onNavigateTab?.call(4),
+                    onTap: () => onNavigateTab?.call(5),
                   ),
                   _buildStatCard(
                     title: 'Total Transaksi',
                     value: transaksiCount.toString(),
                     icon: Icons.confirmation_number,
                     color: Colors.purpleAccent,
-                    onTap: () => onNavigateTab?.call(5),
+                    onTap: () => onNavigateTab?.call(6),
                   ),
                   _buildStatCard(
                     title: 'Menu Makanan',
                     value: foodCount.toString(),
                     icon: Icons.fastfood,
                     color: Colors.orangeAccent,
-                    onTap: () => onNavigateTab?.call(7),
+                    onTap: () => onNavigateTab?.call(8),
                   ),
                 ],
               );
@@ -132,6 +132,51 @@ class AdminDashboardHome extends StatelessWidget {
                   ],
                 ),
               ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Scan Ticket Quick Action Banner
+          InkWell(
+            onTap: () => onNavigateTab?.call(1),
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppTheme.accentYellow.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.accentYellow),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.qr_code_scanner, size: 36, color: AppTheme.accentYellow),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'SCAN & VALIDASI TIKET MASUK PELANGGAN',
+                          style: TextStyle(
+                            color: AppTheme.accentYellow,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Klik di sini untuk langsung memindai QR Code tiket penonton yang tiba di bioskop.',
+                          style: TextStyle(color: Colors.white70, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.arrow_forward_ios, color: AppTheme.accentYellow, size: 18),
+                ],
+              ),
             ),
           ),
         ],

@@ -1,10 +1,19 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../models/user_model.dart';
 import '../services/database_service.dart';
 import '../services/local_storage_service.dart';
-import '../services/auth_service.dart';
+import '../services/api_service.dart';
 
 class AuthProvider extends ChangeNotifier {
+  static const _defaultClientId = '903636755933-6pvqab9pp5vhjqse967738phv8o2k6j5.apps.googleusercontent.com';
+  static const _googleServerClientId = String.fromEnvironment('GOOGLE_SERVER_CLIENT_ID', defaultValue: _defaultClientId);
+  static const _googleWebClientId = String.fromEnvironment('GOOGLE_WEB_CLIENT_ID', defaultValue: _defaultClientId);
+  static final GoogleSignIn _googleSignIn = GoogleSignIn(
+    serverClientId: kIsWeb ? null : _googleServerClientId,
+    clientId: kIsWeb ? _googleWebClientId : null,
+    scopes: ['email'],
+  );
   final DatabaseService _db = DatabaseService();
   UserModel? _currentUser;
   bool _isLoading = false;
@@ -238,32 +247,62 @@ class AuthProvider extends ChangeNotifier {
     return true;
   }
 
-  Future<bool> loginWithGoogle({required String email, required String name}) async {
+  Future<bool> loginWithGoogle() async {
     _isLoading = true;
     notifyListeners();
 
-    await Future.delayed(const Duration(milliseconds: 300));
+    try {
+      if (_googleServerClientId.isEmpty && _googleWebClientId.isEmpty) {
+        throw StateError('Client ID Google belum dikonfigurasi. Jalankan aplikasi dengan --dart-define.');
+      }
 
-    UserModel? user = _db.getUserByEmail(email);
+      GoogleSignInAccount? googleUser;
+      try {
+        googleUser = await _googleSignIn.signIn();
+      } catch (e) {
+        debugPrint('Google Sign In Error: $e');
+        throw StateError('Gagal membuka popup Google: $e. Pastikan origin http://localhost:8080 terdaftar di Google Cloud Console.');
+      }
 
-    if (user == null) {
-      user = UserModel(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        email: email,
-        name: name,
-        role: email.toLowerCase().contains('admin') ? 'Admin' : 'Pelanggan',
+      if (googleUser == null) {
+        try {
+          googleUser = await _googleSignIn.signInSilently();
+        } catch (_) {}
+      }
+
+      if (googleUser == null) {
+        throw StateError('Proses login Google dibatalkan atau ditolak.');
+      }
+
+      final googleAuth = await googleUser.authentication;
+      final idToken = googleAuth.idToken;
+      if (idToken == null || idToken.isEmpty) {
+        throw StateError('Token ID Google tidak ditemukan pada respon akun.');
+      }
+
+      final response = await ApiService.loginWithGoogle(idToken);
+      final data = response?['data'];
+      if (response?['status'] != 'success' || data is! Map) {
+        throw StateError(response?['message']?.toString() ?? 'Backend Google login tidak merespons.');
+      }
+
+      final user = UserModel(
+        id: data['id'].toString(),
+        email: data['email']?.toString() ?? googleUser.email,
+        name: data['name']?.toString() ?? googleUser.displayName ?? 'Pengguna Google',
+        role: data['role']?.toString() ?? 'Pelanggan',
         selectedCity: _selectedCity,
       );
+      _currentUser = user;
+      _selectedCity = user.selectedCity;
       _db.saveUser(user);
+      await _saveSession();
+      await _persistUsers();
+      return true;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-
-    _currentUser = user;
-    _selectedCity = user.selectedCity;
-    _isLoading = false;
-    notifyListeners();
-    await _saveSession();
-    await _persistUsers();
-    return true;
   }
 
   Future<bool> register({
@@ -310,6 +349,6 @@ class AuthProvider extends ChangeNotifier {
     _currentUser = null;
     notifyListeners();
     _clearSession();
-    AuthService.signOut();
+    _googleSignIn.signOut();
   }
 }

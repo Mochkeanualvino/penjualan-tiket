@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/theme.dart';
 import 'admin_dashboard_home.dart';
+import 'admin_scan_ticket_screen.dart';
 import 'kelola_film_screen.dart';
 import 'kelola_studio_screen.dart';
 import 'kelola_kursi_screen.dart';
@@ -24,6 +25,7 @@ class _DashboardAdminScreenState extends State<DashboardAdminScreen> {
 
   final List<String> _titles = [
     'Dashboard',
+    'Scan & Validasi Tiket',
     'Kelola Film',
     'Kelola Studio',
     'Kelola Kursi',
@@ -45,6 +47,7 @@ class _DashboardAdminScreenState extends State<DashboardAdminScreen> {
           });
         },
       ),
+      const AdminScanTicketScreen(),
       const KelolaFilmScreen(),
       const KelolaStudioScreen(),
       const KelolaKursiScreen(),
@@ -92,6 +95,7 @@ class _DashboardAdminScreenState extends State<DashboardAdminScreen> {
                   labelType: NavigationRailLabelType.all,
                   destinations: const [
                     NavigationRailDestination(icon: Icon(Icons.dashboard), label: Text('Dashboard')),
+                    NavigationRailDestination(icon: Icon(Icons.qr_code_scanner), label: Text('Scan Tiket')),
                     NavigationRailDestination(icon: Icon(Icons.movie), label: Text('Film')),
                     NavigationRailDestination(icon: Icon(Icons.meeting_room), label: Text('Studio')),
                     NavigationRailDestination(icon: Icon(Icons.event_seat), label: Text('Kursi')),
@@ -132,13 +136,14 @@ class _DashboardAdminScreenState extends State<DashboardAdminScreen> {
               ),
             ),
             _buildDrawerItem(0, 'Dashboard', Icons.dashboard),
-            _buildDrawerItem(1, 'Kelola Film', Icons.movie),
-            _buildDrawerItem(2, 'Kelola Studio', Icons.meeting_room),
-            _buildDrawerItem(3, 'Kelola Kursi', Icons.event_seat),
-            _buildDrawerItem(4, 'Kelola Jadwal', Icons.schedule),
-            _buildDrawerItem(5, 'Kelola Transaksi', Icons.receipt_long),
-            _buildDrawerItem(6, 'Kelola Pembayaran', Icons.payment),
-            _buildDrawerItem(7, 'Kelola Makanan', Icons.fastfood),
+            _buildDrawerItem(1, 'Scan & Validasi Tiket', Icons.qr_code_scanner),
+            _buildDrawerItem(2, 'Kelola Film', Icons.movie),
+            _buildDrawerItem(3, 'Kelola Studio', Icons.meeting_room),
+            _buildDrawerItem(4, 'Kelola Kursi', Icons.event_seat),
+            _buildDrawerItem(5, 'Kelola Jadwal', Icons.schedule),
+            _buildDrawerItem(6, 'Kelola Transaksi', Icons.receipt_long),
+            _buildDrawerItem(7, 'Kelola Pembayaran', Icons.payment),
+            _buildDrawerItem(8, 'Kelola Makanan', Icons.fastfood),
             const Divider(color: Colors.white10),
             ListTile(
               leading: const Icon(Icons.logout, color: AppTheme.accentRed),

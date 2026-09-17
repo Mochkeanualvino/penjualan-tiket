@@ -14,6 +14,8 @@ class TransaksiModel {
   final String status; // 'Pending', 'Berhasil', 'Dibatalkan'
   final DateTime tanggalTransaksi;
   final PembayaranModel? pembayaran;
+  final bool isUsed;
+  final DateTime? usedAt;
 
   TransaksiModel({
     required this.id,
@@ -29,6 +31,8 @@ class TransaksiModel {
     required this.status,
     required this.tanggalTransaksi,
     this.pembayaran,
+    this.isUsed = false,
+    this.usedAt,
   });
 
   factory TransaksiModel.fromMap(Map<String, dynamic> map, String docId) {
@@ -52,6 +56,10 @@ class TransaksiModel {
       pembayaran: map['pembayaran'] != null 
           ? PembayaranModel.fromMap(Map<String, dynamic>.from(map['pembayaran']), map['pembayaran']['id'] ?? '') 
           : null,
+      isUsed: map['isUsed'] == true || map['is_used'] == 1,
+      usedAt: map['usedAt'] != null 
+          ? (map['usedAt'] is DateTime ? map['usedAt'] : DateTime.tryParse(map['usedAt'].toString()))
+          : null,
     );
   }
 
@@ -69,6 +77,8 @@ class TransaksiModel {
       'status': status,
       'tanggalTransaksi': tanggalTransaksi.toIso8601String(),
       'pembayaran': pembayaran?.toMap(),
+      'isUsed': isUsed,
+      'usedAt': usedAt?.toIso8601String(),
     };
   }
 }

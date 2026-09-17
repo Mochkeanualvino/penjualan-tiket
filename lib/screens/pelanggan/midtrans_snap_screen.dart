@@ -60,6 +60,8 @@ class _MidtransSnapScreenState extends State<MidtransSnapScreen> {
   int _remainingSeconds = 600; // 10 menit
   Timer? _countdownTimer;
   bool _isLoading = true;
+  String? _paymentError;
+  String? _midtransRedirectUrl;
 
   static const MethodChannel _galleryChannel = MethodChannel('com.bioskop.tiket_bioskop/gallery');
 
@@ -100,16 +102,25 @@ class _MidtransSnapScreenState extends State<MidtransSnapScreen> {
   }
 
   Future<void> _initMidtransTransaction() async {
-    await MidtransService.createSnapTransaction(
-      orderId: widget.orderId,
-      grossAmount: widget.grossAmount,
-      customerName: widget.customerName,
-      customerEmail: widget.customerEmail,
-      customerPhone: widget.customerPhone,
-      itemName: widget.itemName,
-      itemQty: 1,
-      preferredPaymentType: _selectedMethod.toLowerCase(),
-    );
+    try {
+      final transaction = await MidtransService.createSnapTransaction(
+        orderId: widget.orderId,
+        grossAmount: widget.grossAmount,
+        customerName: widget.customerName,
+        customerEmail: widget.customerEmail,
+        customerPhone: widget.customerPhone,
+        itemName: widget.itemName,
+        itemQty: 1,
+        preferredPaymentType: _selectedMethod.toLowerCase(),
+      );
+      _midtransRedirectUrl = transaction.redirectUrl;
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _paymentError = error.toString().replaceFirst('Bad state: ', '');
+        });
+      }
+    }
 
     if (mounted) {
       setState(() {
@@ -195,6 +206,14 @@ class _MidtransSnapScreenState extends State<MidtransSnapScreen> {
   }
 
   Future<void> _launchPaymentApp() async {
+    if (_midtransRedirectUrl != null && _midtransRedirectUrl!.isNotEmpty) {
+      final snapUri = Uri.tryParse(_midtransRedirectUrl!);
+      if (snapUri != null && await canLaunchUrl(snapUri)) {
+        await launchUrl(snapUri, mode: LaunchMode.externalApplication);
+        return;
+      }
+    }
+
     final deeplink = _getMethodDeeplink(_selectedMethod);
     final webUrl = _getMethodWebFallback(_selectedMethod);
 
@@ -617,6 +636,28 @@ class _MidtransSnapScreenState extends State<MidtransSnapScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryGold))
+          : _paymentError != null
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
+                        const SizedBox(height: 12),
+                        const Text('Pembayaran belum dapat dibuat', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        Text(_paymentError!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
+                        const SizedBox(height: 20),
+                        OutlinedButton.icon(
+                          onPressed: () => Navigator.pop(context, const MidtransSnapResult(status: MidtransPaymentStatus.failed)),
+                          icon: const Icon(Icons.arrow_back),
+                          label: const Text('KEMBALI'),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
           : Column(
               children: [
                 Container(

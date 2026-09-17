@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\StudioController;
 use App\Http\Controllers\Api\JadwalController;
 use App\Http\Controllers\Api\TransaksiController;
 use App\Http\Controllers\Api\AutoSaveDraftController;
+use App\Http\Controllers\Api\MidtransController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,8 +20,13 @@ Route::prefix('v1')->group(function () {
 
     // === AUTHENTICATION API ===
     Route::post('/auth/login', [AuthController::class, 'login']);
+    Route::post('/auth/google', [AuthController::class, 'google']);
     Route::post('/auth/register', [AuthController::class, 'register']);
     Route::get('/auth/me', [AuthController::class, 'me']);
+
+    // === MIDTRANS PAYMENT ===
+    Route::post('/payments/midtrans', [MidtransController::class, 'create']);
+    Route::get('/payments/midtrans/{orderId}/status', [MidtransController::class, 'status']);
 
     // === AUTO-SAVE INPUT DRAFT API ===
     // Endpoint khusus untuk menyimpan otomatis data input form real-time saat diketik

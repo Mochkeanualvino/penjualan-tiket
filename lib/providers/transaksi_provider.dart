@@ -304,4 +304,99 @@ class TransaksiProvider extends ChangeNotifier {
     _autoSave();
     return false;
   }
+
+  /// Validasi dan tandai tiket sebagai "Sudah Digunakan" (Maksimal 1x Scan per Tiket)
+  Future<Map<String, dynamic>> scanDanValidasiTiket(String rawCode) async {
+    _isLoading = true;
+    notifyListeners();
+
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    // Ekstrak ID dari format raw (bisa "trx_xxx", "KENTICKET:trx_xxx", dll)
+    String cleanId = rawCode.trim();
+    if (cleanId.contains('KENTICKET:')) {
+      final parts = cleanId.split('KENTICKET:')[1].split(':');
+      cleanId = parts[0].trim();
+    } else if (cleanId.startsWith('TKT-')) {
+      cleanId = cleanId.replaceFirst('TKT-', '').trim();
+    }
+
+    final index = _transaksiList.indexWhere(
+      (t) => t.id.toLowerCase() == cleanId.toLowerCase() || t.id.replaceAll('trx_', '').toLowerCase() == cleanId.replaceAll('trx_', '').toLowerCase(),
+    );
+
+    if (index == -1) {
+      _isLoading = false;
+      notifyListeners();
+      return {
+        'success': false,
+        'message': 'Tiket tidak ditemukan! Pastikan Kode QR atau ID Tiket valid.',
+        'transaksi': null,
+      };
+    }
+
+    final trx = _transaksiList[index];
+
+    // Cek status tiket (harus sudah Berhasil)
+    if (trx.status != 'Berhasil') {
+      _isLoading = false;
+      notifyListeners();
+      return {
+        'success': false,
+        'message': 'Tiket belum bisa di-scan karena status transaksi masih "${trx.status}".',
+        'transaksi': trx,
+      };
+    }
+
+    // Cek batasan 1x scan (Apakah sudah pernah di-scan?)
+    if (trx.isUsed) {
+      _isLoading = false;
+      notifyListeners();
+      final formattedTime = trx.usedAt != null 
+          ? "${trx.usedAt!.day}/${trx.usedAt!.month}/${trx.usedAt!.year} jam ${trx.usedAt!.hour.toString().padLeft(2, '0')}:${trx.usedAt!.minute.toString().padLeft(2, '0')}"
+          : "sebelumnya";
+      return {
+        'success': false,
+        'alreadyUsed': true,
+        'message': 'TIKET SUDAH DIGUNAKAN pada $formattedTime!\n(Ditolak: Tiket hanya dapat di-scan 1x).',
+        'transaksi': trx,
+      };
+    }
+
+    // Tandai tiket sebagai sudah digunakan
+    final updatedTrx = TransaksiModel(
+      id: trx.id,
+      userId: trx.userId,
+      userEmail: trx.userEmail,
+      filmJudul: trx.filmJudul,
+      posterUrl: trx.posterUrl,
+      namaStudio: trx.namaStudio,
+      tanggalTayang: trx.tanggalTayang,
+      jamTayang: trx.jamTayang,
+      daftarKursi: trx.daftarKursi,
+      totalHarga: trx.totalHarga,
+      status: trx.status,
+      tanggalTransaksi: trx.tanggalTransaksi,
+      pembayaran: trx.pembayaran,
+      isUsed: true,
+      usedAt: DateTime.now(),
+    );
+
+    _transaksiList[index] = updatedTrx;
+    _isLoading = false;
+    notifyListeners();
+    _autoSave();
+
+    // Sync ke API jika tersedia
+    ApiService.put('/transaksi/${trx.id}/scan', {
+      'is_used': true,
+      'used_at': updatedTrx.usedAt!.toIso8601String(),
+    });
+
+    return {
+      'success': true,
+      'message': 'TIKET VALID & BERHASIL DI-SCAN!\nSilakan persilakan pelanggan masuk ke ${trx.namaStudio}.',
+      'transaksi': updatedTrx,
+    };
+  }
 }

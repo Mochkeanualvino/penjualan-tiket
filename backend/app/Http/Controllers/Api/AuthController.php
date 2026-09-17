@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
 class AuthController extends Controller
@@ -32,6 +33,65 @@ class AuthController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Login berhasil',
+            'data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+            ],
+        ]);
+    }
+
+    /**
+     * Login with a Google ID token issued for this application.
+     */
+    public function google(Request $request)
+    {
+        $validated = $request->validate([
+            'id_token' => 'required|string',
+        ]);
+
+        $googleResponse = Http::acceptJson()
+            ->get('https://oauth2.googleapis.com/tokeninfo', ['id_token' => $validated['id_token']]);
+
+        if (!$googleResponse->successful()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Token Google tidak valid atau sudah kedaluwarsa.',
+            ], 401);
+        }
+
+        $googleUser = $googleResponse->json();
+        $expectedClientId = env('GOOGLE_CLIENT_ID');
+        if (!$expectedClientId || ($googleUser['aud'] ?? null) !== $expectedClientId) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Client ID Google tidak cocok dengan konfigurasi backend.',
+            ], 401);
+        }
+
+        $email = strtolower(trim($googleUser['email'] ?? ''));
+        if (!$email || ($googleUser['email_verified'] ?? 'false') !== 'true') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Email Google belum terverifikasi.',
+            ], 401);
+        }
+
+        $user = User::where('email', $email)->first();
+        if (!$user) {
+            $user = User::create([
+                'id' => (string) Str::uuid(),
+                'name' => $googleUser['name'] ?? explode('@', $email)[0],
+                'email' => $email,
+                'password' => Hash::make(Str::random(40)),
+                'role' => 'Pelanggan',
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Login Google berhasil',
             'data' => [
                 'id' => $user->id,
                 'name' => $user->name,

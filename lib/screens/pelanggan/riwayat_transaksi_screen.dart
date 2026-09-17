@@ -8,6 +8,7 @@ import '../../providers/food_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/theme.dart';
 import '../../utils/formatters.dart';
+import '../../widgets/qr_ticket_widget.dart';
 
 class RiwayatTransaksiScreen extends StatefulWidget {
   const RiwayatTransaksiScreen({super.key});
@@ -32,9 +33,6 @@ class _RiwayatTransaksiScreenState extends State<RiwayatTransaksiScreen> with Si
   }
 
   void _showTicketDetailModal(BuildContext context, TransaksiModel trx) {
-    final bookingCode = 'XXI-${trx.id.hashCode.abs().toString().padLeft(7, '8').substring(0, 7)}';
-    final qrImageUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=8&data=${Uri.encodeComponent("TICKET-PASS-$bookingCode-${trx.filmJudul}-${trx.daftarKursi.join(",")}")}';
-
     final isSuccess = trx.status == 'Berhasil';
     final isPending = trx.status == 'Menunggu Verifikasi' || trx.status == 'Pending';
     final isRejected = trx.status == 'Ditolak';
@@ -125,34 +123,7 @@ class _RiwayatTransaksiScreenState extends State<RiwayatTransaksiScreen> with Si
                     const Divider(color: Colors.white12, height: 24),
 
                     if (isSuccess) ...[
-                      // QR Code Scanner Frame (Hanya tampil jika sudah Lunas)
-                      Container(
-                        width: 170,
-                        height: 170,
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(6),
-                          child: Image.network(
-                            qrImageUrl,
-                            width: 150,
-                            height: 150,
-                            fit: BoxFit.contain,
-                            errorBuilder: (ctx, _, __) => const Center(
-                              child: Icon(Icons.qr_code_2, size: 120, color: Colors.black),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        'KODE BOOKING: $bookingCode',
-                        style: GoogleFonts.poppins(color: AppTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 15, letterSpacing: 1.5),
-                      ),
-                      const Text('Tunjukkan QR Code ini di scanner pintu bioskop XXI', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                      QrTicketWidget(transaksi: trx),
                     ] else if (isPending) ...[
                       // Box Status Menunggu Verifikasi Admin
                       Container(

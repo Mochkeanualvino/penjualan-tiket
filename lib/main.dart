@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'utils/theme.dart';
 import 'providers/auth_provider.dart';
 import 'providers/film_provider.dart';
@@ -10,7 +9,6 @@ import 'providers/kursi_provider.dart';
 import 'providers/jadwal_provider.dart';
 import 'providers/transaksi_provider.dart';
 import 'providers/food_provider.dart';
-import 'firebase_options.dart';
 import 'services/local_storage_service.dart';
 import 'screens/login_screen.dart';
 import 'screens/admin/dashboard_admin_screen.dart';
@@ -20,16 +18,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('id_ID', null);
   await LocalStorageService.init();
-
-  // Inisialisasi Firebase (Firestore untuk sinkronisasi HP <-> Laptop)
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    debugPrint('✅ Firebase berhasil diinisialisasi');
-  } catch (e) {
-    debugPrint('⚠️ Firebase gagal diinisialisasi (mode offline): $e');
-  }
 
   runApp(const BioskopApp());
 }
